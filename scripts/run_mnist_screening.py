@@ -44,7 +44,6 @@ class MnistMLP(nn.Module):
         self.activation = activation
         self.dropout_rate = dropout
 
-        # Build layers: 784 -> h1 -> h2 -> ... -> 10
         layers = []
         prev_size = 784
         for h in hidden_sizes:
@@ -68,7 +67,6 @@ class MnistMLP(nn.Module):
             raise ValueError(f"Unknown activation: {self.activation}")
 
     def forward(self, x):
-        # Flatten: (batch, 28, 28) -> (batch, 784)
         x = x.view(x.size(0), -1)
         return self.network(x)
 
@@ -91,7 +89,6 @@ class MnistCNN(nn.Module):
         self.activation = activation
         self.dropout_rate = dropout
 
-        # Conv layers
         conv_layers = []
         in_channels = 1
         for out_ch in channels:
@@ -103,11 +100,8 @@ class MnistCNN(nn.Module):
             in_channels = out_ch
         self.conv = nn.Sequential(*conv_layers)
 
-        # Compute flattened size after conv+pool
-        # For 28x28 input with 2 pool ops: 28/4 = 7
         self._flattened_size = channels[-1] * 7 * 7
 
-        # FC layers
         self.fc = nn.Sequential(
             nn.Linear(self._flattened_size, fc_size),
             self._get_activation(),
@@ -143,7 +137,13 @@ def apply_init(
     m: int = 4,
     offset_start: int = 0,
 ):
-    """Apply initialization to model weights."""
+    """Apply initialization to model weights.
+    
+    CE-N offset tracking:
+    - Each layer gets a UNIQUE offset (non-overlapping CE stream regions)
+    - Offset = sum of numel() of all preceding weight tensors
+    - Only weight tensors (not biases) get CE-N init
+    """
     offset = offset_start
 
     for module in model.modules():
@@ -204,7 +204,6 @@ def get_synthetic_dataloaders(batch_size: int = 128, num_samples: int = 1000):
     """Generate synthetic MNIST-like data for testing."""
     torch.manual_seed(42)
 
-    # Synthetic data: 28x28 images with random labels
     X_train = torch.randn(num_samples, 1, 28, 28)
     y_train = torch.randint(0, 10, (num_samples,))
     X_test = torch.randn(num_samples // 5, 1, 28, 28)
@@ -279,6 +278,7 @@ def run_experiment(
     config: dict,
     output_dir: str,
     dry_run: bool = False,
+    seed: int | None = None,
 ):
     """Run a single experiment (model + init combination)."""
     device = torch.device(config["training"]["device"])
@@ -353,7 +353,6 @@ def run_experiment(
 
     # Find convergence epoch
     if convergence_epoch is None:
-        # Check if any epoch reached threshold
         for entry in epochs_log:
             if entry["test_accuracy"] >= convergence_threshold:
                 convergence_epoch = entry["epoch"]
@@ -362,7 +361,8 @@ def run_experiment(
     return {
         "model": model_type,
         "init": init_name,
-        "seed": None,
+        "m": m if init_name == "ce_n" else None,
+        "seed": seed,
         "epochs": epochs_log,
         "final_accuracy": epochs_log[-1]["test_accuracy"] if epochs_log else 0.0,
         "convergence_epoch": convergence_epoch,
@@ -387,24 +387,44 @@ def main():
     # Get model and init configs
     model_configs = config["models"]
     init_methods = config["init_methods"]
+    seed_range = config.get("seed_range", [42, 43, 44, 45, 46])
 
     results = {"experiment": config["experiment"]["name"], "runs": []}
 
-    # Run experiments
+    # Run experiments with multi-seed support
     for model_type in ["mlp", "cnn"]:
+        if model_type not in model_configs:
+            continue
         model_config = model_configs[model_type]
+        
         for init_method in init_methods:
-            print(f"Running: {model_type} + {init_method['name']}")
-            result = run_experiment(
-                model_type=model_type,
-                model_config=model_config,
-                init_method=init_method,
-                config=config,
-                output_dir=str(output_dir),
-                dry_run=args.dry_run,
-            )
-            results["runs"].append(result)
-            print(f"  Final accuracy: {result['final_accuracy']:.4f}")
+            init_name = init_method["name"]
+            
+            # CE-N is deterministic - run once
+            # Xavier/He - run for each seed
+            if init_name == "ce_n":
+                seeds = [None]
+            else:
+                seeds = seed_range
+            
+            for seed in seeds:
+                # Set seed for non-CE-N runs
+                if seed is not None:
+                    torch.manual_seed(seed)
+                    np.random.seed(seed)
+                
+                print(f"Running: {model_type} + {init_name} (seed={seed})")
+                result = run_experiment(
+                    model_type=model_type,
+                    model_config=model_config,
+                    init_method=init_method,
+                    config=config,
+                    output_dir=str(output_dir),
+                    dry_run=args.dry_run,
+                    seed=seed,
+                )
+                results["runs"].append(result)
+                print(f"  Final accuracy: {result['final_accuracy']:.4f}")
 
     # Save results
     results_path = output_dir / "results.json"

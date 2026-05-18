@@ -200,3 +200,63 @@ class TestDryRun:
             )
 
             assert len(result["epochs"]) == 1
+
+
+class TestMultiSeed:
+    """Tests for multi-seed functionality."""
+
+    def test_multi_seed_creates_different_weights(self):
+        """Different seeds produce different weights for Xavier init."""
+        # First run with seed 42
+        torch.manual_seed(42)
+        model1 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model1, "xavier")
+        weights1 = model1.network[0].weight.clone()
+
+        # Second run with seed 100
+        torch.manual_seed(100)
+        model2 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model2, "xavier")
+        weights2 = model2.network[0].weight.clone()
+
+        # Weights should be different
+        assert not torch.equal(weights1, weights2)
+
+    def test_ce_n_deterministic_no_seed(self):
+        """CE-N init produces same weights regardless of seed."""
+        # First run
+        model1 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model1, "ce_n", m=4)
+        weights1 = model1.network[0].weight.clone()
+
+        # Second run (no seed set)
+        model2 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model2, "ce_n", m=4)
+        weights2 = model2.network[0].weight.clone()
+
+        # CE-N is deterministic - weights should be identical
+        assert torch.equal(weights1, weights2)
+
+
+class TestConfigMParameter:
+    """Tests for m parameter in config."""
+
+    def test_config_m_parameter(self):
+        """Verify m passes through to init in ablation config."""
+        config_path = "configs/mnist_m_ablation.json"
+        assert os.path.exists(config_path)
+
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        # Check that CE-N methods have m parameter
+        ce_n_methods = [m for m in config["init_methods"] if m["name"] == "ce_n"]
+        assert len(ce_n_methods) == 4
+
+        m_values = [m["m"] for m in ce_n_methods]
+        assert set(m_values) == {3, 4, 5, 6}
+
+        # He baseline should not have m
+        he_methods = [m for m in config["init_methods"] if m["name"] == "he"]
+        assert len(he_methods) == 1
+        assert "m" not in he_methods[0]
