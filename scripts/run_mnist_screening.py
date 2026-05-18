@@ -1,0 +1,418 @@
+#!/usr/bin/env python3
+"""MNIST screening pipeline with CE-N and baseline initializations."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Try to import torchvision; if not available, use synthetic data
+try:
+    from torchvision.datasets import MNIST
+    from torchvision.transforms import Compose, Normalize, ToTensor
+
+    HAS_TORCHVISION = True
+except ImportError:
+    HAS_TORCHVISION = False
+
+from copeland_erdos_nets.ce_init import ce_init_
+
+
+# ============================================================================
+# Models
+# ============================================================================
+
+class MnistMLP(nn.Module):
+    """Simple MLP for MNIST: 784 -> hidden -> 10."""
+
+    def __init__(
+        self,
+        hidden_sizes: list[int],
+        activation: str = "relu",
+        dropout: float = 0.0,
+    ):
+        super().__init__()
+        self.hidden_sizes = hidden_sizes
+        self.activation = activation
+        self.dropout_rate = dropout
+
+        # Build layers: 784 -> h1 -> h2 -> ... -> 10
+        layers = []
+        prev_size = 784
+        for h in hidden_sizes:
+            layers.append(nn.Linear(prev_size, h))
+            layers.append(self._get_activation())
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            prev_size = h
+        layers.append(nn.Linear(prev_size, 10))
+
+        self.network = nn.Sequential(*layers)
+
+    def _get_activation(self):
+        if self.activation == "relu":
+            return nn.ReLU()
+        elif self.activation == "tanh":
+            return nn.Tanh()
+        elif self.activation == "sigmoid":
+            return nn.Sigmoid()
+        else:
+            raise ValueError(f"Unknown activation: {self.activation}")
+
+    def forward(self, x):
+        # Flatten: (batch, 28, 28) -> (batch, 784)
+        x = x.view(x.size(0), -1)
+        return self.network(x)
+
+
+class MnistCNN(nn.Module):
+    """Simple CNN for MNIST: Conv->Pool->Conv->Pool->FC->10."""
+
+    def __init__(
+        self,
+        channels: list[int],
+        kernel_size: int = 3,
+        fc_size: int = 128,
+        activation: str = "relu",
+        dropout: float = 0.0,
+    ):
+        super().__init__()
+        self.channels = channels
+        self.kernel_size = kernel_size
+        self.fc_size = fc_size
+        self.activation = activation
+        self.dropout_rate = dropout
+
+        # Conv layers
+        conv_layers = []
+        in_channels = 1
+        for out_ch in channels:
+            conv_layers.append(
+                nn.Conv2d(in_channels, out_ch, kernel_size, padding=kernel_size // 2)
+            )
+            conv_layers.append(self._get_activation())
+            conv_layers.append(nn.MaxPool2d(2, 2))
+            in_channels = out_ch
+        self.conv = nn.Sequential(*conv_layers)
+
+        # Compute flattened size after conv+pool
+        # For 28x28 input with 2 pool ops: 28/4 = 7
+        self._flattened_size = channels[-1] * 7 * 7
+
+        # FC layers
+        self.fc = nn.Sequential(
+            nn.Linear(self._flattened_size, fc_size),
+            self._get_activation(),
+            nn.Dropout(dropout) if dropout > 0 else nn.Identity(),
+            nn.Linear(fc_size, 10),
+        )
+
+    def _get_activation(self):
+        if self.activation == "relu":
+            return nn.ReLU()
+        elif self.activation == "tanh":
+            return nn.Tanh()
+        elif self.activation == "sigmoid":
+            return nn.Sigmoid()
+        else:
+            raise ValueError(f"Unknown activation: {self.activation}")
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
+
+
+# ============================================================================
+# Initialization Methods
+# ============================================================================
+
+def apply_init(
+    model: nn.Module,
+    init_name: str,
+    kind: str = "he",
+    m: int = 4,
+    offset_start: int = 0,
+):
+    """Apply initialization to model weights."""
+    offset = offset_start
+
+    for module in model.modules():
+        if isinstance(module, nn.Linear):
+            if init_name == "ce_n":
+                ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
+                offset += module.weight.numel()
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "xavier":
+                nn.init.xavier_normal_(module.weight)
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "he":
+                nn.init.kaiming_normal_(module.weight, mode="fan_in", nonlinearity="relu")
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+
+        elif isinstance(module, nn.Conv2d):
+            if init_name == "ce_n":
+                ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
+                offset += module.weight.numel()
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "xavier":
+                nn.init.xavier_normal_(module.weight)
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "he":
+                nn.init.kaiming_normal_(module.weight, mode="fan_in", nonlinearity="relu")
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+
+    return offset
+
+
+# ============================================================================
+# Data Loading
+# ============================================================================
+
+def get_mnist_dataloaders(batch_size: int = 128, num_workers: int = 0):
+    """Load MNIST dataset."""
+    if not HAS_TORCHVISION:
+        raise RuntimeError("torchvision not available. Use synthetic data for testing.")
+
+    transform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
+
+    train_dataset = MNIST(root="datasets/", train=True, download=True, transform=transform)
+    test_dataset = MNIST(root="datasets/", train=False, download=True, transform=transform)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+    return train_loader, test_loader
+
+
+def get_synthetic_dataloaders(batch_size: int = 128, num_samples: int = 1000):
+    """Generate synthetic MNIST-like data for testing."""
+    torch.manual_seed(42)
+
+    # Synthetic data: 28x28 images with random labels
+    X_train = torch.randn(num_samples, 1, 28, 28)
+    y_train = torch.randint(0, 10, (num_samples,))
+    X_test = torch.randn(num_samples // 5, 1, 28, 28)
+    y_test = torch.randint(0, 10, (num_samples // 5,))
+
+    train_dataset = TensorDataset(X_train, y_train)
+    test_dataset = TensorDataset(X_test, y_test)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+    return train_loader, test_loader
+
+
+# ============================================================================
+# Training Loop
+# ============================================================================
+
+def train_epoch(model, loader, criterion, optimizer, device):
+    """Train for one epoch."""
+    model.train()
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    for batch_idx, (data, target) in enumerate(loader):
+        data, target = data.to(device), target.to(device)
+
+        optimizer.zero_grad()
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        pred = output.argmax(dim=1)
+        correct += (pred == target).sum().item()
+        total += target.size(0)
+
+    avg_loss = total_loss / len(loader)
+    accuracy = correct / total
+    return avg_loss, accuracy
+
+
+def evaluate(model, loader, criterion, device):
+    """Evaluate model."""
+    model.eval()
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for data, target in loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            loss = criterion(output, target)
+
+            total_loss += loss.item()
+            pred = output.argmax(dim=1)
+            correct += (pred == target).sum().item()
+            total += target.size(0)
+
+    avg_loss = total_loss / len(loader)
+    accuracy = correct / total
+    return avg_loss, accuracy
+
+
+def run_experiment(
+    model_type: str,
+    model_config: dict,
+    init_method: dict,
+    config: dict,
+    output_dir: str,
+    dry_run: bool = False,
+):
+    """Run a single experiment (model + init combination)."""
+    device = torch.device(config["training"]["device"])
+
+    # Get data
+    if HAS_TORCHVISION and not dry_run:
+        train_loader, test_loader = get_mnist_dataloaders(
+            batch_size=config["data"]["batch_size"],
+            num_workers=config["data"]["num_workers"],
+        )
+    else:
+        num_samples = 200 if dry_run else 5000
+        train_loader, test_loader = get_synthetic_dataloaders(
+            batch_size=config["data"]["batch_size"],
+            num_samples=num_samples,
+        )
+
+    # Build model
+    if model_type == "mlp":
+        model = MnistMLP(
+            hidden_sizes=model_config["hidden_sizes"],
+            activation=model_config["activation"],
+            dropout=model_config["dropout"],
+        )
+    elif model_type == "cnn":
+        model = MnistCNN(
+            channels=model_config["channels"],
+            kernel_size=model_config["kernel_size"],
+            fc_size=model_config["fc_size"],
+            activation=model_config["activation"],
+            dropout=model_config["dropout"],
+        )
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
+
+    model = model.to(device)
+
+    # Apply initialization
+    init_name = init_method["name"]
+    kind = init_method.get("kind", "he")
+    m = init_method.get("m", 4)
+    apply_init(model, init_name, kind=kind, m=m)
+
+    # Training setup
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=config["training"]["lr"])
+
+    # Training loop
+    epochs = 1 if dry_run else config["training"]["epochs"]
+    convergence_threshold = config["evaluation"]["convergence_threshold"]
+
+    epochs_log = []
+    convergence_epoch = None
+
+    for epoch in range(1, epochs + 1):
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
+        test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+
+        epochs_log.append({
+            "epoch": epoch,
+            "train_loss": train_loss,
+            "train_accuracy": train_acc,
+            "test_loss": test_loss,
+            "test_accuracy": test_acc,
+        })
+
+        if convergence_epoch is None and test_acc >= convergence_threshold:
+            convergence_epoch = epoch
+
+        if dry_run:
+            break
+
+    # Find convergence epoch
+    if convergence_epoch is None:
+        # Check if any epoch reached threshold
+        for entry in epochs_log:
+            if entry["test_accuracy"] >= convergence_threshold:
+                convergence_epoch = entry["epoch"]
+                break
+
+    return {
+        "model": model_type,
+        "init": init_name,
+        "seed": None,
+        "epochs": epochs_log,
+        "final_accuracy": epochs_log[-1]["test_accuracy"] if epochs_log else 0.0,
+        "convergence_epoch": convergence_epoch,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description="MNIST Screening Pipeline")
+    parser.add_argument("--config", type=str, required=True, help="Path to config JSON")
+    parser.add_argument("--output", type=str, default="results/mnist/", help="Output directory")
+    parser.add_argument("--dry-run", action="store_true", help="Run only 1 epoch for testing")
+    args = parser.parse_args()
+
+    # Load config (JSON)
+    with open(args.config, "r") as f:
+        config = json.load(f)
+
+    # Create output directory
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get model and init configs
+    model_configs = config["models"]
+    init_methods = config["init_methods"]
+
+    results = {"experiment": config["experiment"]["name"], "runs": []}
+
+    # Run experiments
+    for model_type in ["mlp", "cnn"]:
+        model_config = model_configs[model_type]
+        for init_method in init_methods:
+            print(f"Running: {model_type} + {init_method['name']}")
+            result = run_experiment(
+                model_type=model_type,
+                model_config=model_config,
+                init_method=init_method,
+                config=config,
+                output_dir=str(output_dir),
+                dry_run=args.dry_run,
+            )
+            results["runs"].append(result)
+            print(f"  Final accuracy: {result['final_accuracy']:.4f}")
+
+    # Save results
+    results_path = output_dir / "results.json"
+    with open(results_path, "w") as f:
+        json.dump(results, f, indent=2)
+
+    print(f"\nResults saved to {results_path}")
+
+
+if __name__ == "__main__":
+    main()

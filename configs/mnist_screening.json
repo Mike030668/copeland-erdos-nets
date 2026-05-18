@@ -1,0 +1,42 @@
+{
+  "experiment": {
+    "name": "mnist_screening",
+    "seed_range": [42, 43, 44, 45, 46]
+  },
+  "data": {
+    "dataset": "MNIST",
+    "batch_size": 128,
+    "num_workers": 0
+  },
+  "models": {
+    "mlp": {
+      "type": "MLP",
+      "hidden_sizes": [256, 128],
+      "activation": "relu",
+      "dropout": 0.0
+    },
+    "cnn": {
+      "type": "CNN",
+      "channels": [16, 32],
+      "kernel_size": 3,
+      "fc_size": 128,
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {"name": "ce_n", "kind": "he", "m": 4},
+    {"name": "xavier"},
+    {"name": "he"}
+  ],
+  "training": {
+    "epochs": 15,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "device": "cpu"
+  },
+  "evaluation": {
+    "metrics": ["accuracy", "loss"],
+    "convergence_threshold": 0.97
+  }
+}

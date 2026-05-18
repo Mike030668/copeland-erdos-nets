@@ -5,6 +5,7 @@ description = "Research: deterministic NN init via Copeland-Erdős streams and p
 requires-python = ">=3.10"
 dependencies = [
     "torch>=2.0",
+    "torchvision>=0.15",
     "numpy>=1.24",
     "scipy>=1.10",
     "matplotlib>=3.7",
