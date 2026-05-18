@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+.venv/
+.env
+
+# ML artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+datasets/
+outputs/
+checkpoints/
+wandb/
+runs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Temp
+.tmp/
+*.log
+
+# Private control plane
+.control
+.control.backup
