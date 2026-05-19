@@ -389,6 +389,7 @@ def run_experiment(
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
         device = torch.device(device_str)
+    print(f"Device: {device}")
 
     # Get data
     if HAS_TORCHVISION and not dry_run:
