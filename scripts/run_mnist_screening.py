@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MNIST screening pipeline with CE-N and baseline initializations."""
+"""MNIST screening pipeline with CE-N, Sobol-N, and baseline initializations."""
 
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ except ImportError:
     HAS_TORCHVISION = False
 
 from copeland_erdos_nets.ce_init import ce_init_
+from copeland_erdos_nets.sobol_init import sobol_init_
 
 
 # ============================================================================
@@ -126,6 +127,46 @@ class MnistCNN(nn.Module):
         return x
 
 
+class DeepMLP(nn.Module):
+    """Deep MLP for MNIST: 784 -> 512 -> 512 -> 256 -> 128 -> 10."""
+
+    def __init__(
+        self,
+        hidden_sizes: list[int],
+        activation: str = "relu",
+        dropout: float = 0.0,
+    ):
+        super().__init__()
+        self.hidden_sizes = hidden_sizes
+        self.activation = activation
+
+        layers = []
+        prev_size = 784
+        for h in hidden_sizes:
+            layers.append(nn.Linear(prev_size, h))
+            layers.append(self._get_activation())
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            prev_size = h
+        layers.append(nn.Linear(prev_size, 10))
+
+        self.network = nn.Sequential(*layers)
+
+    def _get_activation(self):
+        if self.activation == "relu":
+            return nn.ReLU()
+        elif self.activation == "tanh":
+            return nn.Tanh()
+        elif self.activation == "sigmoid":
+            return nn.Sigmoid()
+        else:
+            raise ValueError(f"Unknown activation: {self.activation}")
+
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        return self.network(x)
+
+
 # ============================================================================
 # Initialization Methods
 # ============================================================================
@@ -135,22 +176,21 @@ def apply_init(
     init_name: str,
     kind: str = "he",
     m: int = 4,
-    offset_start: int = 0,
+    offset: int = 0,
+    scramble_seed: int = 0,
 ):
     """Apply initialization to model weights.
     
-    CE-N offset tracking:
-    - Each layer gets a UNIQUE offset (non-overlapping CE stream regions)
-    - Offset = sum of numel() of all preceding weight tensors
-    - Only weight tensors (not biases) get CE-N init
+    Supports CE-N (with offset), Sobol-N (with scramble_seed), Xavier, He.
     """
-    offset = offset_start
-
     for module in model.modules():
         if isinstance(module, nn.Linear):
             if init_name == "ce_n":
                 ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
-                offset += module.weight.numel()
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "sobol_n":
+                sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind)
                 if module.bias is not None:
                     nn.init.zeros_(module.bias)
             elif init_name == "xavier":
@@ -165,7 +205,10 @@ def apply_init(
         elif isinstance(module, nn.Conv2d):
             if init_name == "ce_n":
                 ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
-                offset += module.weight.numel()
+                if module.bias is not None:
+                    nn.init.zeros_(module.bias)
+            elif init_name == "sobol_n":
+                sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind)
                 if module.bias is not None:
                     nn.init.zeros_(module.bias)
             elif init_name == "xavier":
@@ -177,7 +220,64 @@ def apply_init(
                 if module.bias is not None:
                     nn.init.zeros_(module.bias)
 
-    return offset
+
+def get_weight_stats(model: nn.Module) -> dict:
+    """Collect weight statistics for each layer."""
+    stats = {}
+    for name, param in model.named_parameters():
+        if "weight" in name:
+            w = param.data.cpu()
+            stats[name] = {
+                "mean": float(w.mean()),
+                "std": float(w.std()),
+                "min": float(w.min()),
+                "max": float(w.max()),
+            }
+    return stats
+
+
+def get_activation_stats(model: nn.Module, device: torch.device) -> dict:
+    """Collect activation statistics for each layer (on first forward pass)."""
+    stats = {}
+    activations = {}
+
+    def make_hook(name):
+        def hook(module, input, output):
+            act = output.detach().cpu()
+            activations[name] = {
+                "mean": float(act.mean()),
+                "std": float(act.std()),
+            }
+        return hook
+
+    # Register hooks
+    handles = []
+    for name, module in model.named_modules():
+        if isinstance(module, (nn.Linear, nn.Conv2d)):
+            handles.append(module.register_forward_hook(make_hook(name)))
+
+    # Forward pass on dummy input
+    with torch.no_grad():
+        if isinstance(model, (MnistMLP, DeepMLP)):
+            dummy = torch.randn(1, 1, 28, 28, device=device)
+        else:
+            dummy = torch.randn(1, 1, 28, 28, device=device)
+        _ = model(dummy)
+
+    # Remove hooks
+    for h in handles:
+        h.remove()
+
+    return activations
+
+
+def compute_grad_norm(model: nn.Module) -> float:
+    """Compute total gradient L2 norm across all parameters."""
+    total_norm = 0.0
+    for param in model.parameters():
+        if param.grad is not None:
+            total_norm += param.grad.data.norm(2).item() ** 2
+    return total_norm ** 0.5
 
 
 # ============================================================================
@@ -279,9 +379,16 @@ def run_experiment(
     output_dir: str,
     dry_run: bool = False,
     seed: int | None = None,
+    offset: int | None = None,
+    scramble_seed: int | None = None,
 ):
     """Run a single experiment (model + init combination)."""
-    device = torch.device(config["training"]["device"])
+    # Handle device="auto"
+    device_str = config["training"].get("device", "cpu")
+    if device_str == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(device_str)
 
     # Get data
     if HAS_TORCHVISION and not dry_run:
@@ -311,6 +418,12 @@ def run_experiment(
             activation=model_config["activation"],
             dropout=model_config["dropout"],
         )
+    elif model_type == "deep_mlp":
+        model = DeepMLP(
+            hidden_sizes=model_config["hidden_sizes"],
+            activation=model_config["activation"],
+            dropout=model_config["dropout"],
+        )
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
@@ -320,7 +433,7 @@ def run_experiment(
     init_name = init_method["name"]
     kind = init_method.get("kind", "he")
     m = init_method.get("m", 4)
-    apply_init(model, init_name, kind=kind, m=m)
+    apply_init(model, init_name, kind=kind, m=m, offset=offset or 0, scramble_seed=scramble_seed or 0)
 
     # Training setup
     criterion = nn.CrossEntropyLoss()
@@ -333,17 +446,40 @@ def run_experiment(
     epochs_log = []
     convergence_epoch = None
 
+    # Collect epoch 0 (before training)
+    if not dry_run:
+        epoch0 = {
+            "epoch": 0,
+            "train_loss": None,
+            "train_accuracy": None,
+            "test_loss": None,
+            "test_accuracy": None,
+            "weight_stats": get_weight_stats(model),
+            "grad_norm": None,
+            "activation_stats": get_activation_stats(model, device),
+        }
+        epochs_log.append(epoch0)
+
     for epoch in range(1, epochs + 1):
         train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
         test_loss, test_acc = evaluate(model, test_loader, criterion, device)
 
-        epochs_log.append({
+        # Compute grad norm (after backward pass)
+        grad_norm = compute_grad_norm(model)
+
+        # Collect stats
+        epoch_entry = {
             "epoch": epoch,
             "train_loss": train_loss,
             "train_accuracy": train_acc,
             "test_loss": test_loss,
             "test_accuracy": test_acc,
-        })
+            "weight_stats": get_weight_stats(model),
+            "grad_norm": grad_norm,
+            "activation_stats": get_activation_stats(model, device),
+        }
+
+        epochs_log.append(epoch_entry)
 
         if convergence_epoch is None and test_acc >= convergence_threshold:
             convergence_epoch = epoch
@@ -354,7 +490,7 @@ def run_experiment(
     # Find convergence epoch
     if convergence_epoch is None:
         for entry in epochs_log:
-            if entry["test_accuracy"] >= convergence_threshold:
+            if entry.get("test_accuracy") and entry["test_accuracy"] >= convergence_threshold:
                 convergence_epoch = entry["epoch"]
                 break
 
@@ -363,8 +499,10 @@ def run_experiment(
         "init": init_name,
         "m": m if init_name == "ce_n" else None,
         "seed": seed,
+        "offset": offset,
+        "scramble_seed": scramble_seed,
         "epochs": epochs_log,
-        "final_accuracy": epochs_log[-1]["test_accuracy"] if epochs_log else 0.0,
+        "final_accuracy": epochs_log[-1].get("test_accuracy", 0.0) if epochs_log else 0.0,
         "convergence_epoch": convergence_epoch,
     }
 
@@ -391,29 +529,54 @@ def main():
 
     results = {"experiment": config["experiment"]["name"], "runs": []}
 
-    # Run experiments with multi-seed support
-    for model_type in ["mlp", "cnn"]:
+    # Run experiments with multi-seed/offset/scramble support
+    for model_type in ["mlp", "cnn", "deep_mlp"]:
         if model_type not in model_configs:
             continue
         model_config = model_configs[model_type]
-        
+
         for init_method in init_methods:
             init_name = init_method["name"]
-            
-            # CE-N is deterministic - run once
-            # Xavier/He - run for each seed
-            if init_name == "ce_n":
-                seeds = [None]
+
+            # Determine iteration values
+            offsets = init_method.get("offsets", None)
+            scramble_seeds = init_method.get("scramble_seeds", None)
+
+            if init_name == "ce_n" and offsets is not None:
+                # Run once per offset
+                iterations = [{"offset": o, "seed": None, "scramble_seed": None} for o in offsets]
+            elif init_name == "sobol_n" and scramble_seeds is not None:
+                # Run once per scramble_seed
+                iterations = [{"offset": None, "seed": None, "scramble_seed": s} for s in scramble_seeds]
+            elif init_name == "ce_n":
+                # CE-N without offsets: deterministic, run once
+                iterations = [{"offset": 0, "seed": None, "scramble_seed": None}]
+            elif init_name == "sobol_n":
+                # Sobol without scramble_seeds: use default seed
+                iterations = [{"offset": None, "seed": None, "scramble_seed": 0}]
             else:
-                seeds = seed_range
-            
-            for seed in seeds:
-                # Set seed for non-CE-N runs
+                # Xavier/He: run for each seed
+                iterations = [{"offset": None, "seed": s, "scramble_seed": None} for s in seed_range]
+
+            for it in iterations:
+                seed = it["seed"]
+                offset = it["offset"]
+                scramble_seed = it["scramble_seed"]
+
+                # Set seed for non-CE-N/non-Sobol runs
                 if seed is not None:
                     torch.manual_seed(seed)
                     np.random.seed(seed)
-                
-                print(f"Running: {model_type} + {init_name} (seed={seed})")
+
+                init_desc = f"{init_name}"
+                if offset is not None:
+                    init_desc += f"(offset={offset})"
+                if scramble_seed is not None:
+                    init_desc += f"(seed={scramble_seed})"
+                if seed is not None:
+                    init_desc += f"[seed={seed}]"
+
+                print(f"Running: {model_type} + {init_desc}")
                 result = run_experiment(
                     model_type=model_type,
                     model_config=model_config,
@@ -422,6 +585,8 @@ def main():
                     output_dir=str(output_dir),
                     dry_run=args.dry_run,
                     seed=seed,
+                    offset=offset,
+                    scramble_seed=scramble_seed,
                 )
                 results["runs"].append(result)
                 print(f"  Final accuracy: {result['final_accuracy']:.4f}")

@@ -1,0 +1,44 @@
+{
+  "experiment": {
+    "name": "mnist_offset_sobol",
+    "seed_range": [42, 43, 44, 45, 46, 47, 48, 49, 50, 51]
+  },
+  "data": {
+    "dataset": "MNIST",
+    "batch_size": 128,
+    "num_workers": 0
+  },
+  "models": {
+    "mlp": {
+      "type": "MLP",
+      "hidden_sizes": [256, 128],
+      "activation": "relu",
+      "dropout": 0.0
+    },
+    "cnn": {
+      "type": "CNN",
+      "channels": [16, 32],
+      "kernel_size": 3,
+      "fc_size": 128,
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {"name": "he"},
+    {"name": "xavier"},
+    {"name": "sobol_n", "kind": "he", "scramble_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]},
+    {"name": "ce_n", "kind": "he", "m": 6, "offsets": [0, 10000, 50000, 100000, 500000, 1000000, 2000000, 5000000, 10000000, 20000000]},
+    {"name": "ce_n", "kind": "he", "m": 8, "offsets": [0, 10000, 50000, 100000, 500000]}
+  ],
+  "training": {
+    "epochs": 15,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "device": "auto"
+  },
+  "evaluation": {
+    "metrics": ["accuracy", "loss"],
+    "convergence_threshold": 0.97
+  }
+}

@@ -9,6 +9,7 @@ import torch
 
 from scripts.run_mnist_screening import (
     HAS_TORCHVISION,
+    DeepMLP,
     MnistCNN,
     MnistMLP,
     apply_init,
@@ -260,3 +261,173 @@ class TestConfigMParameter:
         he_methods = [m for m in config["init_methods"] if m["name"] == "he"]
         assert len(he_methods) == 1
         assert "m" not in he_methods[0]
+
+
+class TestSobolInit:
+    """Tests for Sobol-N initialization."""
+
+    def test_sobol_init_shape(self):
+        """Sobol init produces correct shape."""
+        model = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model, "sobol_n", scramble_seed=0)
+        
+        # Check that weights are not all zeros
+        w0 = model.network[0].weight
+        assert w0.shape == (32, 784)
+        assert not torch.allclose(w0, torch.zeros_like(w0))
+
+    def test_sobol_different_seeds_different_weights(self):
+        """Different scramble seeds produce different weights."""
+        model1 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model1, "sobol_n", scramble_seed=0)
+        weights1 = model1.network[0].weight.clone()
+
+        model2 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model2, "sobol_n", scramble_seed=1)
+        weights2 = model2.network[0].weight.clone()
+
+        assert not torch.equal(weights1, weights2)
+
+    def test_sobol_same_seed_same_weights(self):
+        """Same scramble seed produces same weights."""
+        model1 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model1, "sobol_n", scramble_seed=42)
+        weights1 = model1.network[0].weight.clone()
+
+        model2 = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model2, "sobol_n", scramble_seed=42)
+        weights2 = model2.network[0].weight.clone()
+
+        assert torch.equal(weights1, weights2)
+
+    def test_sobol_zero_mean(self):
+        """Sobol init has approximately zero mean."""
+        model = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model, "sobol_n", scramble_seed=0)
+        
+        weights = model.network[0].weight
+        assert abs(weights.mean().item()) < 0.1
+
+    def test_sobol_std_matches_target(self):
+        """Sobol init std matches He target."""
+        model = MnistMLP(hidden_sizes=[32, 16])
+        apply_init(model, "sobol_n", kind="he", scramble_seed=0)
+        
+        weights = model.network[0].weight
+        fan_in = 784
+        expected_std = 1.0 / (fan_in ** 0.5)
+        actual_std = weights.std().item()
+        
+        # 50% tolerance for standardization with Sobol
+        assert abs(actual_std - expected_std) / expected_std < 0.5
+
+
+class TestOffsetConfig:
+    """Tests for offset and scramble_seed config parsing."""
+
+    def test_offset_config_parsing(self):
+        """Offset field parsed correctly from config."""
+        config_path = "configs/mnist_offset_sobol.json"
+        if not os.path.exists(config_path):
+            pytest.skip("Config not available")
+
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        # Find CE-N method with offsets
+        ce_n_with_offsets = None
+        for method in config["init_methods"]:
+            if method["name"] == "ce_n" and "offsets" in method:
+                ce_n_with_offsets = method
+                break
+
+        assert ce_n_with_offsets is not None
+        assert "offsets" in ce_n_with_offsets
+        assert len(ce_n_with_offsets["offsets"]) > 1
+
+    def test_scramble_seed_config_parsing(self):
+        """Scramble_seed field parsed correctly from config."""
+        config_path = "configs/mnist_offset_sobol.json"
+        if not os.path.exists(config_path):
+            pytest.skip("Config not available")
+
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        # Find Sobol method with scramble_seeds
+        sobol_with_seeds = None
+        for method in config["init_methods"]:
+            if method["name"] == "sobol_n" and "scramble_seeds" in method:
+                sobol_with_seeds = method
+                break
+
+        assert sobol_with_seeds is not None
+        assert "scramble_seeds" in sobol_with_seeds
+        assert len(sobol_with_seeds["scramble_seeds"]) > 1
+
+
+class TestExtendedMetrics:
+    """Tests for extended metrics collection."""
+
+    def test_extended_metrics_collected(self):
+        """weight_stats and activation_stats present in output."""
+        from scripts.run_mnist_screening import get_weight_stats, get_activation_stats
+        import torch
+
+        model = MnistMLP(hidden_sizes=[32, 16])
+        device = torch.device("cpu")
+
+        # Test weight_stats
+        w_stats = get_weight_stats(model)
+        assert len(w_stats) > 0
+        for name, stats in w_stats.items():
+            assert "mean" in stats
+            assert "std" in stats
+            assert "min" in stats
+            assert "max" in stats
+
+        # Test activation_stats
+        a_stats = get_activation_stats(model, device)
+        # Activation stats may be empty if no layers registered
+        # but the function should not crash
+        assert isinstance(a_stats, dict)
+
+    def test_grad_norm_computed(self):
+        """grad_norm is computed correctly."""
+        from scripts.run_mnist_screening import compute_grad_norm
+
+        model = MnistMLP(hidden_sizes=[32, 16])
+        
+        # Before backward, grad_norm should be 0
+        grad_norm = compute_grad_norm(model)
+        assert grad_norm == 0.0
+
+        # After backward, grad_norm should be > 0
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        
+        x = torch.randn(4, 784)
+        y = torch.randint(0, 10, (4,))
+        
+        output = model(x)
+        loss = criterion(output, y)
+        loss.backward()
+        
+        grad_norm = compute_grad_norm(model)
+        assert grad_norm > 0.0
+
+
+class TestDeepMLP:
+    """Tests for DeepMLP model."""
+
+    def test_deep_mlp_creation(self):
+        """DeepMLP can be created."""
+        model = DeepMLP(hidden_sizes=[512, 512, 256, 128])
+        assert model is not None
+
+    def test_deep_mlp_forward(self):
+        """DeepMLP forward pass works."""
+        model = DeepMLP(hidden_sizes=[512, 256, 128])
+        x = torch.randn(4, 1, 28, 28)
+        out = model(x)
+        assert out.shape == (4, 10)

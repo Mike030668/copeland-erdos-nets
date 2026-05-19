@@ -1,5 +1,8 @@
 {
-  "experiment": "mnist_m_ablation",
+  "experiment": {
+    "name": "mnist_m_ablation",
+    "seed_range": [42, 43, 44, 45, 46]
+  },
   "data": {
     "dataset": "MNIST",
     "batch_size": 128,
