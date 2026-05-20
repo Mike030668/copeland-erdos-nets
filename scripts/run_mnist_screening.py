@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 
 import numpy as np
+import gc
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -483,6 +485,12 @@ def run_experiment(
                 convergence_epoch = entry["epoch"]
                 break
 
+    # Free model memory
+    del model
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     return {
         "model": model_type,
         "init": init_name,
@@ -582,6 +590,11 @@ def main():
                 conv_str = f" (converged @ epoch {conv})" if conv else ""
                 print(f"  → Final accuracy: {result['final_accuracy']:.4f}{conv_str}", flush=True)
                 print(flush=True)
+
+                # Cleanup CUDA memory between runs
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
     # Save results
     results_path = output_dir / "results.json"
