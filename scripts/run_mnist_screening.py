@@ -181,44 +181,25 @@ def apply_init(
 ):
     """Apply initialization to model weights.
     
-    Supports CE-N (with offset), Sobol-N (with scramble_seed), Xavier, He.
+    Supports CE-N, CE-U, Sobol-N, Sobol-U, Xavier, He.
     """
     for module in model.modules():
-        if isinstance(module, nn.Linear):
-            if init_name == "ce_n":
-                ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "sobol_n":
-                sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "xavier":
-                nn.init.xavier_normal_(module.weight)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "he":
-                nn.init.kaiming_normal_(module.weight, mode="fan_in", nonlinearity="relu")
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
+        if not isinstance(module, (nn.Linear, nn.Conv2d)):
+            continue
 
-        elif isinstance(module, nn.Conv2d):
-            if init_name == "ce_n":
-                ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "sobol_n":
-                sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "xavier":
-                nn.init.xavier_normal_(module.weight)
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
-            elif init_name == "he":
-                nn.init.kaiming_normal_(module.weight, mode="fan_in", nonlinearity="relu")
-                if module.bias is not None:
-                    nn.init.zeros_(module.bias)
+        if init_name in ("ce_n", "ce_u"):
+            mode = "uniform" if init_name == "ce_u" else "normal"
+            ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset, mode=mode)
+        elif init_name in ("sobol_n", "sobol_u"):
+            mode = "uniform" if init_name == "sobol_u" else "normal"
+            sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind, mode=mode)
+        elif init_name == "xavier":
+            nn.init.xavier_normal_(module.weight)
+        elif init_name == "he":
+            nn.init.kaiming_normal_(module.weight, mode="fan_in", nonlinearity="relu")
+
+        if module.bias is not None:
+            nn.init.zeros_(module.bias)
 
 
 def get_weight_stats(model: nn.Module) -> dict:
