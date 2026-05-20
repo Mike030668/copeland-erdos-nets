@@ -504,6 +504,17 @@ def run_experiment(
     }
 
 
+def _save_results(results: dict, output_dir: Path) -> None:
+    """Atomically save results (crash-safe: write to tmp then rename)."""
+    results_path = output_dir / "results.json"
+    tmp_path = output_dir / "results.json.tmp"
+    with open(tmp_path, "w") as f:
+        json.dump(results, f, indent=2)
+    tmp_path.rename(results_path)
+    n = len(results.get("runs", []))
+    print(f"  [saved {n} runs to {results_path}]", flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description="MNIST Screening Pipeline")
     parser.add_argument("--config", type=str, required=True, help="Path to config JSON")
@@ -596,12 +607,12 @@ def main():
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
 
-    # Save results
-    results_path = output_dir / "results.json"
-    with open(results_path, "w") as f:
-        json.dump(results, f, indent=2)
+                # Incremental save (crash-safe)
+                _save_results(results, output_dir)
 
-    print(f"\nResults saved to {results_path}")
+    # Final save
+    _save_results(results, output_dir)
+    print(f"\nAll results saved to {output_dir / 'results.json'}")
 
 
 if __name__ == "__main__":
