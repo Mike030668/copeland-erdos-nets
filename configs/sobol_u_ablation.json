@@ -1,20 +1,73 @@
 {
   "experiment": {
     "name": "r004_sobol_u_ablation",
-    "description": "Sobol-U vs Sobol-N ablation"
+    "seed_range": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51
+    ]
   },
   "data": {
+    "dataset": "MNIST",
     "batch_size": 256,
-    "num_workers": 0,
-    "dataset": "MNIST"
+    "num_workers": 0
   },
+  "models": {
+    "mlp": {
+      "type": "MLP",
+      "hidden_sizes": [
+        256,
+        128
+      ],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {
+      "name": "sobol_n",
+      "kind": "he",
+      "scramble_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "name": "sobol_u",
+      "kind": "he",
+      "scramble_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ],
   "training": {
-    "optimizer": "sgd",
-    "lr": 0.05,
-    "momentum": 0.9,
-    "weight_decay": 0.0005,
     "epochs": 20,
-    "scheduler": "cosine",
+    "optimizer": "adam",
+    "lr": 0.001,
     "device": "auto"
   },
   "evaluation": {
@@ -22,159 +75,6 @@
       "accuracy",
       "loss"
     ],
-    "convergence_threshold": 0.97,
-    "extended_metrics": true
-  },
-  "model": {
-    "type": "mlp",
-    "hidden_sizes": [
-      256,
-      128
-    ],
-    "activation": "relu",
-    "dropout": 0.0,
-    "batch_norm": false
-  },
-  "runs": [
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 0,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 1,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 2,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 3,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 4,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 5,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 6,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 7,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 8,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_n",
-      "init_params": {
-        "scramble_seed": 9,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 0,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 1,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 2,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 3,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 4,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 5,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 6,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 7,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 8,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "sobol_u",
-      "init_params": {
-        "scramble_seed": 9,
-        "mode": "uniform"
-      }
-    }
-  ]
+    "convergence_threshold": 0.97
+  }
 }

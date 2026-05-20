@@ -524,16 +524,16 @@ def main():
             offsets = init_method.get("offsets", None)
             scramble_seeds = init_method.get("scramble_seeds", None)
 
-            if init_name == "ce_n" and offsets is not None:
+            if init_name in ("ce_n", "ce_u") and offsets is not None:
                 # Run once per offset
                 iterations = [{"offset": o, "seed": None, "scramble_seed": None} for o in offsets]
-            elif init_name == "sobol_n" and scramble_seeds is not None:
+            elif init_name in ("sobol_n", "sobol_u") and scramble_seeds is not None:
                 # Run once per scramble_seed
                 iterations = [{"offset": None, "seed": None, "scramble_seed": s} for s in scramble_seeds]
-            elif init_name == "ce_n":
-                # CE-N without offsets: deterministic, run once
+            elif init_name in ("ce_n", "ce_u"):
+                # CE without offsets: deterministic, run once
                 iterations = [{"offset": 0, "seed": None, "scramble_seed": None}]
-            elif init_name == "sobol_n":
+            elif init_name in ("sobol_n", "sobol_u"):
                 # Sobol without scramble_seeds: use default seed
                 iterations = [{"offset": None, "seed": None, "scramble_seed": 0}]
             else:

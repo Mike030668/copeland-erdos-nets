@@ -1,20 +1,109 @@
 {
   "experiment": {
     "name": "r004_ce_u_ablation",
-    "description": "CE-U vs CE-N ablation"
+    "seed_range": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51
+    ]
   },
   "data": {
+    "dataset": "MNIST",
     "batch_size": 256,
-    "num_workers": 0,
-    "dataset": "MNIST"
+    "num_workers": 0
   },
+  "models": {
+    "mlp": {
+      "type": "MLP",
+      "hidden_sizes": [
+        256,
+        128
+      ],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [
+        0,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        10000000,
+        20000000
+      ]
+    },
+    {
+      "name": "ce_u",
+      "kind": "he",
+      "m": 8,
+      "offsets": [
+        0,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        10000000,
+        20000000
+      ]
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 10,
+      "offsets": [
+        0,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        10000000,
+        20000000
+      ]
+    },
+    {
+      "name": "ce_u",
+      "kind": "he",
+      "m": 10,
+      "offsets": [
+        0,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        10000000,
+        20000000
+      ]
+    }
+  ],
   "training": {
-    "optimizer": "sgd",
-    "lr": 0.05,
-    "momentum": 0.9,
-    "weight_decay": 0.0005,
     "epochs": 20,
-    "scheduler": "cosine",
+    "optimizer": "adam",
+    "lr": 0.001,
     "device": "auto"
   },
   "evaluation": {
@@ -22,339 +111,6 @@
       "accuracy",
       "loss"
     ],
-    "convergence_threshold": 0.97,
-    "extended_metrics": true
-  },
-  "model": {
-    "type": "mlp",
-    "hidden_sizes": [
-      256,
-      128
-    ],
-    "activation": "relu",
-    "dropout": 0.0,
-    "batch_norm": false
-  },
-  "runs": [
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 0,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 10000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 50000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 100000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 500000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 1000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 2000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 5000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 10000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 20000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 0,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 10000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 50000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 100000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 500000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 1000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 2000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 5000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 10000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_n",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 20000000,
-        "mode": "normal"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 0,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 10000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 50000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 100000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 500000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 1000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 2000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 5000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 10000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 8,
-        "offset_blocks": 20000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 0,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 10000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 50000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 100000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 500000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 1000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 2000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 5000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 10000000,
-        "mode": "uniform"
-      }
-    },
-    {
-      "init_method": "ce_u",
-      "init_params": {
-        "m": 10,
-        "offset_blocks": 20000000,
-        "mode": "uniform"
-      }
-    }
-  ]
+    "convergence_threshold": 0.97
+  }
 }
