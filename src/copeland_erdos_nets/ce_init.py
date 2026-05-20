@@ -1,11 +1,14 @@
-"""Copeland–Erdős Normal (CE-N) weight initialization for PyTorch.
+"""Copeland–Erdős weight initialization for PyTorch.
 
-Provides deterministic, seed-free initialization that replaces
-Xavier/He random init with values derived from the Copeland–Erdős
-digit stream passed through the inverse normal CDF (Φ⁻¹).
+Provides two deterministic, seed-free initialization modes:
 
-Key idea:
-    CE digits → m-digit blocks → U(0,1) → Φ⁻¹(u) → standardize → scale by σ_Xavier/He
+- **CE-N** (Normal): CE digits → U(0,1) → Φ⁻¹(u) → standardize → scale by σ_Xavier/He
+- **CE-U** (Uniform): CE digits → U(0,1) → 2u-1 → standardize → scale by σ_Xavier/He
+
+CE-U tests the raw digit-stream effect without normal matching.
+CE-N tests the same stream with inverse-normal CDF applied.
+Comparing CE-U vs CE-N isolates whether the effect comes from the digit
+stream itself or from the Φ⁻¹ transform matching the init distribution.
 """
 
 from __future__ import annotations
@@ -72,6 +75,20 @@ def _target_std(
         raise ValueError(f"Unknown init kind: {kind!r}. Use 'xavier' or 'he'.")
 
 
+def _standardize(x: np.ndarray) -> np.ndarray:
+    """Empirical re-center and rescale to zero mean, unit variance.
+
+    This is the matched per-layer scaling recommended by the
+    deep-research-report: do not rely on asymptotic normality,
+    but force exact standardization on the finite sample.
+    """
+    x_mean = x.mean()
+    x_std = x.std()
+    if x_std > 1e-8:
+        return (x - x_mean) / x_std
+    return x - x_mean
+
+
 def ce_normal_init(
     shape: Sequence[int],
     m: int = 4,
@@ -109,7 +126,7 @@ def ce_normal_init(
     if n == 0:
         return torch.empty(shape, dtype=dtype)
 
-    # Step 1–2: CE blocks → uniform
+    # Step 1-2: CE blocks → uniform
     blocks = take_blocks(m=m, num_blocks=n, offset_blocks=offset_blocks)
     u = np.array(blocks_to_uniform(blocks, m), dtype=np.float64)
 
@@ -118,19 +135,72 @@ def ce_normal_init(
     u_clipped = np.clip(u, 1e-7, 1.0 - 1e-7)
     x = scipy_norm.ppf(u_clipped)
 
-    # Step 4: standardize
-    x_mean = x.mean()
-    x_std = x.std()
-    if x_std > 1e-8:
-        x = (x - x_mean) / x_std
-    else:
-        x = x - x_mean
+    # Step 4: standardize (matched per-layer scaling)
+    x = _standardize(x)
 
     # Step 5: scale
     sigma = _target_std(shape, kind=kind, gain=gain, fan_mode=fan_mode)
     x = sigma * x
 
     # Reshape and convert to torch
+    return torch.tensor(x.reshape(shape), dtype=dtype)
+
+
+def ce_uniform_init(
+    shape: Sequence[int],
+    m: int = 4,
+    offset_blocks: int = 0,
+    kind: Literal["xavier", "he"] = "he",
+    gain: float | None = None,
+    fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """Create a weight tensor initialized via Copeland–Erdős Uniform (CE-U).
+
+    CE-U tests the raw digit-stream effect without the inverse normal CDF.
+    Comparing CE-U vs CE-N isolates whether the Phi-inverse transform
+    (normal matching) is responsible for the observed effect.
+
+    Algorithm:
+        1. Extract n = prod(shape) blocks of m digits from CE stream
+        2. Convert to U(0,1): u = (z + 0.5) / 10^m
+        3. Map to symmetric range: x = 2u - 1 (values in (-1, 1))
+        4. Standardize: x = (x - mean) / std
+        5. Scale by target σ (Xavier or He)
+
+    Args:
+        shape: Desired tensor shape.
+        m: Digits per block. Default: 4.
+        offset_blocks: Skip this many blocks for layer-wise offsets.
+        kind: 'xavier' or 'he' scaling.
+        gain: Activation gain override.
+        fan_mode: 'fan_in' or 'fan_out' for He init.
+        dtype: Output tensor dtype.
+
+    Returns:
+        Initialized weight tensor on CPU.
+    """
+    n = 1
+    for s in shape:
+        n *= s
+
+    if n == 0:
+        return torch.empty(shape, dtype=dtype)
+
+    # Step 1-2: CE blocks → uniform
+    blocks = take_blocks(m=m, num_blocks=n, offset_blocks=offset_blocks)
+    u = np.array(blocks_to_uniform(blocks, m), dtype=np.float64)
+
+    # Step 3: symmetric range (no inverse normal CDF)
+    x = 2.0 * u - 1.0
+
+    # Step 4: standardize (matched per-layer scaling)
+    x = _standardize(x)
+
+    # Step 5: scale
+    sigma = _target_std(shape, kind=kind, gain=gain, fan_mode=fan_mode)
+    x = sigma * x
+
     return torch.tensor(x.reshape(shape), dtype=dtype)
 
 
@@ -141,18 +211,21 @@ def ce_init_(
     kind: Literal["xavier", "he"] = "he",
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
+    mode: Literal["normal", "uniform"] = "normal",
 ) -> torch.Tensor:
-    """In-place CE-N initialization (follows PyTorch nn.init convention).
+    """In-place CE initialization (follows PyTorch nn.init convention).
 
     Args:
         tensor: Weight tensor to initialize in-place.
         m, offset_blocks, kind, gain, fan_mode: See ce_normal_init.
+        mode: 'normal' for CE-N (with Phi-inverse) or 'uniform' for CE-U (without).
 
     Returns:
         The input tensor (modified in-place).
     """
+    init_fn = ce_normal_init if mode == "normal" else ce_uniform_init
     with torch.no_grad():
-        new_data = ce_normal_init(
+        new_data = init_fn(
             shape=tuple(tensor.shape),
             m=m,
             offset_blocks=offset_blocks,
