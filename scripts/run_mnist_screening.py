@@ -463,6 +463,13 @@ def run_experiment(
 
         epochs_log.append(epoch_entry)
 
+        # Verbose epoch logging
+        conv_mark = " ★" if convergence_epoch is None and test_acc >= convergence_threshold else ""
+        print(f"  Epoch {epoch:2d}/{epochs}: "
+              f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} | "
+              f"test_loss={test_loss:.4f} test_acc={test_acc:.4f} "
+              f"grad_norm={grad_norm:.4f}{conv_mark}", flush=True)
+
         if convergence_epoch is None and test_acc >= convergence_threshold:
             convergence_epoch = epoch
 
@@ -571,7 +578,10 @@ def main():
                     scramble_seed=scramble_seed,
                 )
                 results["runs"].append(result)
-                print(f"  Final accuracy: {result['final_accuracy']:.4f}")
+                conv = result.get("convergence_epoch")
+                conv_str = f" (converged @ epoch {conv})" if conv else ""
+                print(f"  → Final accuracy: {result['final_accuracy']:.4f}{conv_str}", flush=True)
+                print(flush=True)
 
     # Save results
     results_path = output_dir / "results.json"
