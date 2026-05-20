@@ -1,0 +1,252 @@
+{
+  "experiment": {
+    "name": "r004_mlp4_extended",
+    "description": "MLP-4 extended metrics"
+  },
+  "data": {
+    "batch_size": 256,
+    "num_workers": 0,
+    "dataset": "MNIST"
+  },
+  "training": {
+    "optimizer": "sgd",
+    "lr": 0.05,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "epochs": 20,
+    "scheduler": "cosine",
+    "device": "auto"
+  },
+  "evaluation": {
+    "metrics": [
+      "accuracy",
+      "loss"
+    ],
+    "convergence_threshold": 0.97,
+    "extended_metrics": true
+  },
+  "model": {
+    "type": "mlp",
+    "hidden_sizes": [
+      512,
+      512,
+      256,
+      128
+    ],
+    "activation": "relu",
+    "dropout": 0.0,
+    "batch_norm": false
+  },
+  "runs": [
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 0,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 10000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 50000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 100000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 500000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 1000000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 2000000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 5000000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 10000000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "ce_n",
+      "init_params": {
+        "m": 8,
+        "offset_blocks": 20000000,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 42
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 43
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 44
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 45
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 46
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 47
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 48
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 49
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 50
+      }
+    },
+    {
+      "init_method": "he",
+      "init_params": {
+        "seed": 51
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 0,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 1,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 2,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 3,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 4,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 5,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 6,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 7,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 8,
+        "mode": "normal"
+      }
+    },
+    {
+      "init_method": "sobol_n",
+      "init_params": {
+        "scramble_seed": 9,
+        "mode": "normal"
+      }
+    }
+  ]
+}
