@@ -33,3 +33,4 @@ runs/
 # Private control plane
 .control
 .control.backup
+results/

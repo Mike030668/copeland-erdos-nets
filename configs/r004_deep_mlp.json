@@ -1,10 +1,10 @@
 {
-  "experiment": {"name": "r004_laptop_v2", "seed_range": [42, 43, 44, 45, 46]},
+  "experiment": {"name": "r004_deep_mlp", "seed_range": [42, 43, 44, 45, 46]},
   "data": {"dataset": "MNIST", "batch_size": 256, "num_workers": 0},
   "models": {
-    "mlp": {
-      "type": "MLP",
-      "hidden_sizes": [256, 128],
+    "deep_mlp": {
+      "type": "deep_mlp",
+      "hidden_sizes": [512, 512, 256, 128],
       "activation": "relu",
       "dropout": 0.0
     }
