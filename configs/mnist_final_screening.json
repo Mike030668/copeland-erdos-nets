@@ -1,0 +1,35 @@
+{
+  "experiment": {
+    "name": "R005 Final MNIST Screening"
+  },
+  "data": {
+    "batch_size": 128,
+    "num_workers": 2
+  },
+  "training": {
+    "lr": 0.001,
+    "epochs": 10,
+    "device": "auto"
+  },
+  "evaluation": {
+    "convergence_threshold": 0.95
+  },
+  "models": {
+    "deep_mlp": {
+      "hidden_sizes": [512, 512, 512, 512],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "seed_range": [42, 1337, 2026],
+  "init_methods": [
+    { "name": "ce_n", "assignment": "sequential" },
+    { "name": "ce_n", "assignment": "shuffled" },
+    { "name": "ce_n", "assignment": "hash_indexed" },
+    { "name": "ce_n", "assignment": "sequential", "orthogonalize": true },
+    { "name": "sobol_n", "matrix_shaped": false },
+    { "name": "sobol_n", "matrix_shaped": true },
+    { "name": "he" },
+    { "name": "xavier" }
+  ]
+}

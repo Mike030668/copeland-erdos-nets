@@ -25,12 +25,15 @@ runs/
 .idea/
 .vscode/
 *.swp
+.gigacode
 
 # Temp
 .tmp/
 *.log
+.pytest_cache/
 
 # Private control plane
 .control
 .control.backup
 results/
+reports/

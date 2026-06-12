@@ -21,6 +21,7 @@ import torch
 from scipy.stats import norm as scipy_norm
 
 from .ce_stream import blocks_to_uniform, take_blocks
+from .assignment import apply_assignment, apply_orthogonal
 
 
 def _infer_fans(shape: Sequence[int]) -> tuple[int, int]:
@@ -97,6 +98,8 @@ def ce_normal_init(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     dtype: torch.dtype = torch.float32,
+    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    orthogonalize: bool = False,
 ) -> torch.Tensor:
     """Create a weight tensor initialized via Copeland–Erdős Normal (CE-N).
 
@@ -104,8 +107,10 @@ def ce_normal_init(
         1. Extract n = prod(shape) blocks of m digits from CE stream
         2. Convert to U(0,1): u = (z + 0.5) / 10^m
         3. Apply inverse normal CDF: x = Φ⁻¹(u)
-        4. Standardize: x = (x - mean) / std
-        5. Scale by target σ (Xavier or He)
+        4. Apply assignment strategy (sequential/shuffled/hash)
+        5. Standardize: x = (x - mean) / std
+        6. Scale by target σ (Xavier or He)
+        7. Optional: Orthogonalize via QR
 
     Args:
         shape: Desired tensor shape (e.g., (out_features, in_features)).
@@ -115,6 +120,8 @@ def ce_normal_init(
         gain: Activation gain override.
         fan_mode: 'fan_in' or 'fan_out' for He init.
         dtype: Output tensor dtype.
+        assignment: Mapping strategy to tensor indices.
+        orthogonalize: If True, apply QR orthogonalization.
 
     Returns:
         Initialized weight tensor on CPU.
@@ -131,19 +138,29 @@ def ce_normal_init(
     u = np.array(blocks_to_uniform(blocks, m), dtype=np.float64)
 
     # Step 3: inverse normal CDF
-    # Clip to avoid ±inf at boundaries
     u_clipped = np.clip(u, 1e-7, 1.0 - 1e-7)
     x = scipy_norm.ppf(u_clipped)
 
-    # Step 4: standardize (matched per-layer scaling)
+    # Step 4: Apply assignment strategy
+    # Use offset_blocks as seed for shuffled to keep it deterministic per layer
+    x = apply_assignment(x, shape, strategy=assignment, seed=offset_blocks + 42)
+
+    # Step 5: standardize (matched per-layer scaling)
     x = _standardize(x)
 
-    # Step 5: scale
+    # Step 6: scale
     sigma = _target_std(shape, kind=kind, gain=gain, fan_mode=fan_mode)
     x = sigma * x
 
     # Reshape and convert to torch
-    return torch.tensor(x.reshape(shape), dtype=dtype)
+    tensor = torch.tensor(x, dtype=dtype)
+
+    # Step 7: Optional Orthogonalization
+    if orthogonalize:
+        # Use target sigma as gain for orthogonalization
+        tensor = apply_orthogonal(tensor, gain=sigma)
+
+    return tensor
 
 
 def ce_uniform_init(
@@ -154,31 +171,22 @@ def ce_uniform_init(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     dtype: torch.dtype = torch.float32,
+    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    orthogonalize: bool = False,
 ) -> torch.Tensor:
     """Create a weight tensor initialized via Copeland–Erdős Uniform (CE-U).
-
-    CE-U tests the raw digit-stream effect without the inverse normal CDF.
-    Comparing CE-U vs CE-N isolates whether the Phi-inverse transform
-    (normal matching) is responsible for the observed effect.
 
     Algorithm:
         1. Extract n = prod(shape) blocks of m digits from CE stream
         2. Convert to U(0,1): u = (z + 0.5) / 10^m
         3. Map to symmetric range: x = 2u - 1 (values in (-1, 1))
-        4. Standardize: x = (x - mean) / std
-        5. Scale by target σ (Xavier or He)
+        4. Apply assignment strategy
+        5. Standardize: x = (x - mean) / std
+        6. Scale by target σ (Xavier or He)
+        7. Optional: Orthogonalize
 
     Args:
-        shape: Desired tensor shape.
-        m: Digits per block. Default: 4.
-        offset_blocks: Skip this many blocks for layer-wise offsets.
-        kind: 'xavier' or 'he' scaling.
-        gain: Activation gain override.
-        fan_mode: 'fan_in' or 'fan_out' for He init.
-        dtype: Output tensor dtype.
-
-    Returns:
-        Initialized weight tensor on CPU.
+        ... (same as ce_normal_init) ...
     """
     n = 1
     for s in shape:
@@ -194,14 +202,23 @@ def ce_uniform_init(
     # Step 3: symmetric range (no inverse normal CDF)
     x = 2.0 * u - 1.0
 
-    # Step 4: standardize (matched per-layer scaling)
+    # Step 4: Apply assignment strategy
+    x = apply_assignment(x, shape, strategy=assignment, seed=offset_blocks + 42)
+
+    # Step 5: standardize (matched per-layer scaling)
     x = _standardize(x)
 
-    # Step 5: scale
+    # Step 6: scale
     sigma = _target_std(shape, kind=kind, gain=gain, fan_mode=fan_mode)
     x = sigma * x
 
-    return torch.tensor(x.reshape(shape), dtype=dtype)
+    tensor = torch.tensor(x, dtype=dtype)
+
+    # Step 7: Optional Orthogonalization
+    if orthogonalize:
+        tensor = apply_orthogonal(tensor, gain=sigma)
+
+    return tensor
 
 
 def ce_init_(
@@ -212,17 +229,10 @@ def ce_init_(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     mode: Literal["normal", "uniform"] = "normal",
+    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    orthogonalize: bool = False,
 ) -> torch.Tensor:
-    """In-place CE initialization (follows PyTorch nn.init convention).
-
-    Args:
-        tensor: Weight tensor to initialize in-place.
-        m, offset_blocks, kind, gain, fan_mode: See ce_normal_init.
-        mode: 'normal' for CE-N (with Phi-inverse) or 'uniform' for CE-U (without).
-
-    Returns:
-        The input tensor (modified in-place).
-    """
+    """In-place CE initialization (follows PyTorch nn.init convention)."""
     init_fn = ce_normal_init if mode == "normal" else ce_uniform_init
     with torch.no_grad():
         new_data = init_fn(
@@ -233,6 +243,8 @@ def ce_init_(
             gain=gain,
             fan_mode=fan_mode,
             dtype=tensor.dtype,
+            assignment=assignment,
+            orthogonalize=orthogonalize,
         )
         tensor.copy_(new_data)
     return tensor

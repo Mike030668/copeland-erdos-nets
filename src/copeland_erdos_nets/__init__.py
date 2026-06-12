@@ -2,6 +2,7 @@
 
 __version__ = "0.2.0"
 
+from .assignment import apply_assignment, apply_orthogonal
 from .ce_init import ce_init_, ce_normal_init, ce_uniform_init
 from .ce_stream import blocks_to_uniform, ce_digit_stream, prime_generator, take_blocks
 from .prime_codebook import (
@@ -15,6 +16,8 @@ from .sobol_init import sobol_init_, sobol_normal_init, sobol_uniform_init
 
 __all__ = [
     "STECodebookFn",
+    "apply_assignment",
+    "apply_orthogonal",
     "blocks_to_uniform",
     "ce_digit_stream",
     "ce_init_",

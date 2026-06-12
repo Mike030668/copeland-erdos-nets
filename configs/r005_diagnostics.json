@@ -1,0 +1,82 @@
+{
+  "experiment": {
+    "name": "R005_SCREENING_DIAGNOSTICS",
+    "seed_range": [42, 1337, 2026]
+  },
+  "models": {
+    "deep_mlp": {
+      "hidden_sizes": [512, 512, 512, 512, 512],
+      "activation": "relu",
+      "dropout": 0.0
+    },
+    "mlp": {
+      "hidden_sizes": [512],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {
+      "id": "ce_n_seq",
+      "name": "ce",
+      "params": { "mode": "normal", "assignment": "sequential" }
+    },
+    {
+      "id": "ce_n_shuf",
+      "name": "ce",
+      "params": { "mode": "normal", "assignment": "shuffled" }
+    },
+    {
+      "id": "ce_n_hash",
+      "name": "ce",
+      "params": { "mode": "normal", "assignment": "hash_indexed" }
+    },
+    {
+      "id": "ce_n_ortho",
+      "name": "ce",
+      "params": { "mode": "normal", "assignment": "sequential", "orthogonalize": true }
+    },
+    {
+      "id": "ce_u_seq",
+      "name": "ce",
+      "params": { "mode": "uniform", "assignment": "sequential" }
+    },
+    {
+      "id": "ce_u_shuf",
+      "name": "ce",
+      "params": { "mode": "uniform", "assignment": "shuffled" }
+    },
+    {
+      "id": "sobol_n_1d",
+      "name": "sobol",
+      "params": { "mode": "normal", "matrix_shaped": false }
+    },
+    {
+      "id": "sobol_n_matrix",
+      "name": "sobol",
+      "params": { "mode": "normal", "matrix_shaped": true }
+    },
+    {
+      "id": "he_baseline",
+      "name": "he"
+    },
+    {
+      "id": "xavier_baseline",
+      "name": "xavier"
+    }
+  ],
+  "training": {
+    "lr": 0.001,
+    "epochs": 15,
+    "device": "auto",
+    "thermal_threshold": 75,
+    "cooldown_seconds": 15
+  },
+  "data": {
+    "batch_size": 128,
+    "num_workers": 0
+  },
+  "evaluation": {
+    "convergence_threshold": 0.95
+  }
+}

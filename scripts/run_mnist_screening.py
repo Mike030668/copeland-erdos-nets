@@ -15,6 +15,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+import subprocess
+import time
 
 # Try to import torchvision; if not available, use synthetic data
 try:
@@ -180,6 +182,9 @@ def apply_init(
     m: int = 4,
     offset: int = 0,
     scramble_seed: int = 0,
+    assignment: str = "sequential",
+    orthogonalize: bool = False,
+    matrix_shaped: bool = False,
 ):
     """Apply initialization to model weights.
     
@@ -191,10 +196,25 @@ def apply_init(
 
         if init_name in ("ce_n", "ce_u"):
             mode = "uniform" if init_name == "ce_u" else "normal"
-            ce_init_(module.weight, m=m, kind=kind, offset_blocks=offset, mode=mode)
+            ce_init_(
+                module.weight, 
+                m=m, 
+                kind=kind, 
+                offset_blocks=offset, 
+                mode=mode, 
+                assignment=assignment,
+                orthogonalize=orthogonalize
+            )
         elif init_name in ("sobol_n", "sobol_u"):
             mode = "uniform" if init_name == "sobol_u" else "normal"
-            sobol_init_(module.weight, scramble_seed=scramble_seed, kind=kind, mode=mode)
+            sobol_init_(
+                module.weight, 
+                scramble_seed=scramble_seed, 
+                kind=kind, 
+                mode=mode,
+                assignment=assignment,
+                matrix_shaped=matrix_shaped
+            )
         elif init_name == "xavier":
             nn.init.xavier_normal_(module.weight)
         elif init_name == "he":
@@ -202,6 +222,37 @@ def apply_init(
 
         if module.bias is not None:
             nn.init.zeros_(module.bias)
+
+
+# ============================================================================
+# GPU Safety & Monitoring
+# ============================================================================
+
+def get_gpu_temp() -> int:
+    """Read GPU temperature using nvidia-smi."""
+    try:
+        output = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL
+        )
+        return int(output.decode().strip())
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        return 0
+
+
+def wait_for_gpu_cooling(threshold: int = 75, interval: int = 10):
+    """Pause execution if GPU temperature is too high."""
+    temp = get_gpu_temp()
+    if temp == 0:
+        return
+
+    if temp >= threshold:
+        print(f"  [Safety Gate] GPU Temp {temp}°C >= {threshold}°C. Cooling down...", flush=True)
+        while temp > threshold - 5: # Cool down to threshold - 5
+            time.sleep(interval)
+            temp = get_gpu_temp()
+            print(f"  [Cooling...] Current Temp: {temp}°C", end="\r", flush=True)
+        print(f"\n  [Safety Gate] GPU cooled to {temp}°C. Resuming.")
 
 
 def get_weight_stats(model: nn.Module) -> dict:
@@ -267,18 +318,19 @@ def compute_grad_norm(model: nn.Module) -> float:
 # Data Loading
 # ============================================================================
 
-def get_mnist_dataloaders(batch_size: int = 128, num_workers: int = 0):
-    """Load MNIST dataset."""
+def get_mnist_dataloaders(batch_size: int = 128, num_workers: int = 0, root: str = "datasets/"):
+    """Load MNIST dataset once."""
     if not HAS_TORCHVISION:
         raise RuntimeError("torchvision not available. Use synthetic data for testing.")
 
     transform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
 
-    train_dataset = MNIST(root="datasets/", train=True, download=True, transform=transform)
-    test_dataset = MNIST(root="datasets/", train=False, download=True, transform=transform)
+    print(f"  [loading MNIST from {root}...]")
+    train_dataset = MNIST(root=root, train=True, download=True, transform=transform)
+    test_dataset = MNIST(root=root, train=False, download=True, transform=transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
 
     return train_loader, test_loader
 
@@ -359,33 +411,19 @@ def run_experiment(
     model_config: dict,
     init_method: dict,
     config: dict,
-    output_dir: str,
+    train_loader: DataLoader,
+    test_loader: DataLoader,
+    device: torch.device,
     dry_run: bool = False,
     seed: int | None = None,
     offset: int | None = None,
     scramble_seed: int | None = None,
+    assignment: str = "sequential",
+    orthogonalize: bool = False,
+    matrix_shaped: bool = False,
 ):
     """Run a single experiment (model + init combination)."""
-    # Handle device="auto"
-    device_str = config["training"].get("device", "cpu")
-    if device_str == "auto":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    else:
-        device = torch.device(device_str)
-    print(f"Device: {device}")
-
-    # Get data
-    if HAS_TORCHVISION and not dry_run:
-        train_loader, test_loader = get_mnist_dataloaders(
-            batch_size=config["data"]["batch_size"],
-            num_workers=config["data"]["num_workers"],
-        )
-    else:
-        num_samples = 200 if dry_run else 5000
-        train_loader, test_loader = get_synthetic_dataloaders(
-            batch_size=config["data"]["batch_size"],
-            num_samples=num_samples,
-        )
+    # DataLoader is now passed from main
 
     # Build model
     if model_type == "mlp":
@@ -417,7 +455,17 @@ def run_experiment(
     init_name = init_method["name"]
     kind = init_method.get("kind", "he")
     m = init_method.get("m", 4)
-    apply_init(model, init_name, kind=kind, m=m, offset=offset or 0, scramble_seed=scramble_seed or 0)
+    apply_init(
+        model, 
+        init_name, 
+        kind=kind, 
+        m=m, 
+        offset=offset or 0, 
+        scramble_seed=scramble_seed or 0,
+        assignment=assignment,
+        orthogonalize=orthogonalize,
+        matrix_shaped=matrix_shaped
+    )
 
     # Training setup
     criterion = nn.CrossEntropyLoss()
@@ -485,11 +533,16 @@ def run_experiment(
                 convergence_epoch = entry["epoch"]
                 break
 
-    # Free model memory
+    # Free model memory explicitly
+    model.to("cpu")
     del model
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+    
+    import time
+    time.sleep(0.5) # Let GPU breathe
 
     return {
         "model": model_type,
@@ -515,6 +568,35 @@ def _save_results(results: dict, output_dir: Path) -> None:
     print(f"  [saved {n} runs to {results_path}]", flush=True)
 
 
+def _get_run_id(model_type, init_name, seed, offset, scramble_seed):
+    """Generate a unique ID for a run to check for existing results."""
+    return f"{model_type}_{init_name}_s{seed}_o{offset}_sc{scramble_seed}"
+
+
+def _load_existing_run_ids(output_dir: Path) -> set[str]:
+    """Load IDs of already completed runs from results.json."""
+    results_path = output_dir / "results.json"
+    if not results_path.exists():
+        return set()
+    
+    try:
+        with open(results_path, "r") as f:
+            data = json.load(f)
+            ids = set()
+            for run in data.get("runs", []):
+                ids.add(_get_run_id(
+                    run.get("model"),
+                    run.get("init"),
+                    run.get("seed"),
+                    run.get("offset"),
+                    run.get("scramble_seed")
+                ))
+            return ids
+    except Exception as e:
+        print(f"  [Warning] Could not load existing results: {e}")
+        return set()
+
+
 def main():
     parser = argparse.ArgumentParser(description="MNIST Screening Pipeline")
     parser.add_argument("--config", type=str, required=True, help="Path to config JSON")
@@ -536,6 +618,36 @@ def main():
     seed_range = config.get("seed_range", [42, 43, 44, 45, 46])
 
     results = {"experiment": config["experiment"]["name"], "runs": []}
+    
+    # Handle device="auto"
+    device_str = config["training"].get("device", "cpu")
+    if device_str == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(device_str)
+    print(f"Global Device: {device}")
+
+    # Load data once
+    if HAS_TORCHVISION and not args.dry_run:
+        train_loader, test_loader = get_mnist_dataloaders(
+            batch_size=config["data"]["batch_size"],
+            num_workers=config["data"]["num_workers"],
+        )
+    else:
+        num_samples = 200 if args.dry_run else 5000
+        train_loader, test_loader = get_synthetic_dataloaders(
+            batch_size=config["data"]["batch_size"],
+            num_samples=num_samples,
+        )
+
+    # Load existing runs for resumption
+    completed_ids = _load_existing_run_ids(output_dir)
+    if completed_ids:
+        print(f"Found {len(completed_ids)} existing runs. Resuming...")
+        # Populate results with existing runs to keep incremental save working
+        with open(output_dir / "results.json", "r") as f:
+            existing_data = json.load(f)
+            results["runs"] = existing_data.get("runs", [])
 
     # Run experiments with multi-seed/offset/scramble support
     for model_type in ["mlp", "cnn", "deep_mlp"]:
@@ -544,7 +656,17 @@ def main():
         model_config = model_configs[model_type]
 
         for init_method in init_methods:
-            init_name = init_method["name"]
+            # Bug fix: use "name" and check params to normalize ce/sobol detection
+            raw_name = init_method["name"]
+            mode = init_method.get("params", {}).get("mode", "normal")
+            
+            # Internal normalization for iteration logic
+            if raw_name == "ce":
+                init_name = "ce_u" if mode == "uniform" else "ce_n"
+            elif raw_name == "sobol":
+                init_name = "sobol_u" if mode == "uniform" else "sobol_n"
+            else:
+                init_name = raw_name
 
             # Determine iteration values
             offsets = init_method.get("offsets", None)
@@ -559,6 +681,7 @@ def main():
             elif init_name in ("ce_n", "ce_u"):
                 # CE without offsets: deterministic, run once
                 iterations = [{"offset": 0, "seed": None, "scramble_seed": None}]
+            # ...
             elif init_name in ("sobol_n", "sobol_u"):
                 # Sobol without scramble_seeds: use default seed
                 iterations = [{"offset": None, "seed": None, "scramble_seed": 0}]
@@ -570,6 +693,15 @@ def main():
                 seed = it["seed"]
                 offset = it["offset"]
                 scramble_seed = it["scramble_seed"]
+                
+                # Check for resumption
+                run_id = _get_run_id(model_type, init_name, seed, offset, scramble_seed)
+                if run_id in completed_ids:
+                    # Skip verbose for efficiency
+                    continue
+
+                # Safety check: Thermal cooling
+                wait_for_gpu_cooling(threshold=config["training"].get("thermal_threshold", 75))
 
                 # Set seed for non-CE-N/non-Sobol runs
                 if seed is not None:
@@ -590,25 +722,29 @@ def main():
                     model_config=model_config,
                     init_method=init_method,
                     config=config,
-                    output_dir=str(output_dir),
+                    train_loader=train_loader,
+                    test_loader=test_loader,
+                    device=device,
                     dry_run=args.dry_run,
                     seed=seed,
                     offset=offset,
                     scramble_seed=scramble_seed,
+                    assignment=init_method.get("params", {}).get("assignment", "sequential"),
+                    orthogonalize=init_method.get("params", {}).get("orthogonalize", False),
+                    matrix_shaped=init_method.get("params", {}).get("matrix_shaped", False),
                 )
                 results["runs"].append(result)
                 conv = result.get("convergence_epoch")
                 conv_str = f" (converged @ epoch {conv})" if conv else ""
                 print(f"  → Final accuracy: {result['final_accuracy']:.4f}{conv_str}", flush=True)
-                print(flush=True)
-
-                # Cleanup CUDA memory between runs
-                gc.collect()
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
 
                 # Incremental save (crash-safe)
                 _save_results(results, output_dir)
+                
+                # Inter-experiment cooldown
+                cooldown = config["training"].get("cooldown_seconds", 15)
+                if cooldown > 0:
+                    time.sleep(cooldown)
 
     # Final save
     _save_results(results, output_dir)

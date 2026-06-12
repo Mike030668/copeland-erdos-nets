@@ -1,0 +1,26 @@
+{
+  "experiment": { "name": "R005_SCREENING_FINAL" },
+  "data": { "dataset": "MNIST", "batch_size": 128, "num_workers": 0 },
+  "models": {
+    "deep_mlp": {
+      "hidden_sizes": [512, 512, 256, 128],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+     { "id": "ce_n_seq", "name": "ce_n", "assignment": "sequential" },
+     { "id": "ce_n_shuf", "name": "ce_n", "assignment": "shuffled" },
+     { "id": "ce_n_hash", "name": "ce_n", "assignment": "hash_indexed" },
+     { "id": "ce_n_ortho", "name": "ce_n", "assignment": "sequential", "orthogonalize": true },
+     { "id": "ce_u_seq", "name": "ce_u", "assignment": "sequential" },
+     { "id": "ce_u_shuf", "name": "ce_u", "assignment": "shuffled" },
+     { "id": "sobol_n_1d", "name": "sobol_n", "matrix_shaped": false },
+     { "id": "sobol_n_matrix", "name": "sobol_n", "matrix_shaped": true },
+     { "name": "he" },
+     { "name": "xavier" }
+  ],
+  "seed_range": [42, 1337, 2026],
+  "training": { "epochs": 15, "lr": 0.001, "device": "auto" },
+  "evaluation": { "convergence_threshold": 0.97 }
+}
