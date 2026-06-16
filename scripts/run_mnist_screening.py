@@ -551,6 +551,9 @@ def run_experiment(
         "seed": seed,
         "offset": offset,
         "scramble_seed": scramble_seed,
+        "assignment": assignment,
+        "orthogonalize": orthogonalize,
+        "matrix_shaped": matrix_shaped,
         "epochs": epochs_log,
         "final_accuracy": epochs_log[-1].get("test_accuracy", 0.0) if epochs_log else 0.0,
         "convergence_epoch": convergence_epoch,
@@ -568,9 +571,16 @@ def _save_results(results: dict, output_dir: Path) -> None:
     print(f"  [saved {n} runs to {results_path}]", flush=True)
 
 
-def _get_run_id(model_type, init_name, seed, offset, scramble_seed):
+def _get_run_id(model_type, init_name, seed, offset, scramble_seed, assignment=None, orthogonalize=None, matrix_shaped=None):
     """Generate a unique ID for a run to check for existing results."""
-    return f"{model_type}_{init_name}_s{seed}_o{offset}_sc{scramble_seed}"
+    suffix = ""
+    if assignment and assignment != "sequential":
+        suffix += f"_{assignment}"
+    if orthogonalize:
+        suffix += "_ortho"
+    if matrix_shaped:
+        suffix += "_matrix"
+    return f"{model_type}_{init_name}_s{seed}_o{offset}_sc{scramble_seed}{suffix}"
 
 
 def _load_existing_run_ids(output_dir: Path) -> set[str]:
@@ -589,7 +599,10 @@ def _load_existing_run_ids(output_dir: Path) -> set[str]:
                     run.get("init"),
                     run.get("seed"),
                     run.get("offset"),
-                    run.get("scramble_seed")
+                    run.get("scramble_seed"),
+                    run.get("assignment", "sequential"),
+                    run.get("orthogonalize", False),
+                    run.get("matrix_shaped", False),
                 ))
             return ids
     except Exception as e:
@@ -695,7 +708,16 @@ def main():
                 scramble_seed = it["scramble_seed"]
                 
                 # Check for resumption
-                run_id = _get_run_id(model_type, init_name, seed, offset, scramble_seed)
+                run_id = _get_run_id(
+                    model_type,
+                    init_name,
+                    seed,
+                    offset,
+                    scramble_seed,
+                    assignment=init_method.get("params", {}).get("assignment", "sequential"),
+                    orthogonalize=init_method.get("params", {}).get("orthogonalize", False),
+                    matrix_shaped=init_method.get("params", {}).get("matrix_shaped", False),
+                )
                 if run_id in completed_ids:
                     # Skip verbose for efficiency
                     continue

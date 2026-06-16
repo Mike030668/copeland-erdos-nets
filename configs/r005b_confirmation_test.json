@@ -1,0 +1,72 @@
+{
+  "experiment": {
+    "name": "R005b_spectral_confirmation_test",
+    "seed_range": [42]
+  },
+  "data": {
+    "dataset": "MNIST",
+    "batch_size": 128,
+    "num_workers": 0
+  },
+  "models": {
+    "deep_mlp": {
+      "type": "MLP",
+      "hidden_sizes": [512, 512, 512, 512, 512],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {
+      "name": "xavier"
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0],
+      "params": {
+        "assignment": "sequential"
+      }
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0],
+      "params": {
+        "assignment": "shuffled"
+      }
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0],
+      "params": {
+        "assignment": "hash_indexed"
+      }
+    },
+    {
+      "name": "sobol_n",
+      "kind": "he",
+      "scramble_seeds": [0],
+      "params": {
+        "assignment": "sequential",
+        "matrix_shaped": false
+      }
+    }
+  ],
+  "training": {
+    "epochs": 1,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "device": "auto",
+    "cooldown_seconds": 1,
+    "thermal_threshold": 75
+  },
+  "evaluation": {
+    "metrics": ["accuracy", "loss"],
+    "convergence_threshold": 0.97
+  }
+}

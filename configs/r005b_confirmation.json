@@ -1,0 +1,103 @@
+{
+  "experiment": {
+    "name": "R005b_spectral_confirmation",
+    "seed_range": [42, 43, 44, 45, 46]
+  },
+  "data": {
+    "dataset": "MNIST",
+    "batch_size": 128,
+    "num_workers": 0
+  },
+  "models": {
+    "deep_mlp": {
+      "type": "MLP",
+      "hidden_sizes": [512, 512, 512, 512, 512],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "init_methods": [
+    {
+      "name": "xavier"
+    },
+    {
+      "name": "he"
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0, 10000, 50000, 100000, 500000],
+      "params": {
+        "assignment": "sequential"
+      }
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0, 10000, 50000, 100000, 500000],
+      "params": {
+        "assignment": "shuffled"
+      }
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0, 10000, 50000, 100000, 500000],
+      "params": {
+        "assignment": "hash_indexed"
+      }
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0, 10000, 50000, 100000, 500000],
+      "params": {
+        "assignment": "sequential",
+        "orthogonalize": true
+      }
+    },
+    {
+      "name": "sobol_n",
+      "kind": "he",
+      "scramble_seeds": [0, 1, 2, 3, 4],
+      "params": {
+        "assignment": "sequential",
+        "matrix_shaped": false
+      }
+    },
+    {
+      "name": "sobol_n",
+      "kind": "he",
+      "scramble_seeds": [0, 1, 2, 3, 4],
+      "params": {
+        "assignment": "shuffled",
+        "matrix_shaped": false
+      }
+    },
+    {
+      "name": "sobol_n",
+      "kind": "he",
+      "scramble_seeds": [0, 1, 2, 3, 4],
+      "params": {
+        "assignment": "sequential",
+        "matrix_shaped": true
+      }
+    }
+  ],
+  "training": {
+    "epochs": 15,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "device": "auto",
+    "cooldown_seconds": 5,
+    "thermal_threshold": 75
+  },
+  "evaluation": {
+    "metrics": ["accuracy", "loss"],
+    "convergence_threshold": 0.97
+  }
+}
