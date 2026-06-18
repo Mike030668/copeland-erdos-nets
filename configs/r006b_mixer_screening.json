@@ -91,7 +91,7 @@
     "lr": 0.001,
     "device": "auto",
     "cooldown_seconds": 5,
-    "thermal_threshold": 75
+    "thermal_threshold": 81
   },
   "evaluation": {
     "metrics": ["accuracy"],
