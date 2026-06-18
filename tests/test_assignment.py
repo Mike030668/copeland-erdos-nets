@@ -62,3 +62,39 @@ def test_apply_orthogonal_gain():
     prod = torch.mm(ortho.t(), ortho)
     eye = torch.eye(3) * 4.0
     torch.testing.assert_close(prod, eye, atol=1e-5, rtol=1e-5)
+
+def test_prime_stride_assignment():
+    data = np.arange(100)
+    shape = (10, 10)
+    res = apply_assignment(data, shape, strategy="prime_stride")
+    assert res.shape == shape
+    # It must contain all unique elements of data (bijective)
+    assert len(set(res.flatten())) == 100
+    assert set(res.flatten()) == set(data)
+    # Deterministic check
+    res2 = apply_assignment(data, shape, strategy="prime_stride")
+    np.testing.assert_array_equal(res, res2)
+
+def test_lcg_assignment():
+    data = np.arange(120)
+    shape = (10, 12)
+    res = apply_assignment(data, shape, strategy="lcg")
+    assert res.shape == shape
+    # It must contain all unique elements of data (bijective)
+    assert len(set(res.flatten())) == 120
+    assert set(res.flatten()) == set(data)
+    # Deterministic check
+    res2 = apply_assignment(data, shape, strategy="lcg")
+    np.testing.assert_array_equal(res, res2)
+
+def test_effective_rank():
+    from copeland_erdos_nets.assignment import compute_effective_rank
+    # Ideal identity matrix should have full effective rank
+    W_eye = torch.eye(100)
+    r_eye = compute_effective_rank(W_eye)
+    assert abs(r_eye - 100.0) < 1e-2
+    
+    # Low rank rank-1 matrix should have effective rank 1.0
+    W_ones = torch.ones(100, 100)
+    r_ones = compute_effective_rank(W_ones)
+    assert abs(r_ones - 1.0) < 1e-2
