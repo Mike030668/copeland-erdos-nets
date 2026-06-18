@@ -409,6 +409,15 @@ def run_experiment(
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
+    valid_epochs = [e for e in epochs_log if e.get("test_accuracy") is not None]
+    if valid_epochs:
+        best_epoch_entry = max(valid_epochs, key=lambda e: e["test_accuracy"])
+        best_acc = best_epoch_entry["test_accuracy"]
+        best_epoch = best_epoch_entry["epoch"]
+    else:
+        best_acc = 0.0
+        best_epoch = 0
+
     return {
         "dataset": dataset_name,
         "init": init_name,
@@ -421,6 +430,8 @@ def run_experiment(
         "matrix_shaped": matrix_shaped,
         "epochs": epochs_log,
         "final_accuracy": epochs_log[-1].get("test_accuracy", 0.0) if epochs_log else 0.0,
+        "best_accuracy": best_acc,
+        "best_epoch": best_epoch,
         "convergence_epoch": convergence_epoch,
     }
 
@@ -685,6 +696,8 @@ def main():
                 conv = result.get("convergence_epoch")
                 conv_str = f" (converged @ epoch {conv})" if conv else ""
                 print(f"  → Final accuracy: {result['final_accuracy']:.4f}{conv_str}", flush=True)
+                if "best_accuracy" in result:
+                    print(f"  → Best accuracy: {result['best_accuracy']:.4f} @ epoch {result['best_epoch']}", flush=True)
 
                 _save_results(results, output_dir)
 
