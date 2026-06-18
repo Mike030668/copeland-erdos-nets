@@ -194,8 +194,8 @@ def wait_for_gpu_cooling(threshold: int = 75, interval: int = 10):
         while temp > threshold - 5:
             time.sleep(interval)
             temp = get_gpu_temp()
-            print(f"  [Cooling...] Current Temp: {temp}°C", end="\r", flush=True)
-        print(f"\n  [Safety Gate] GPU cooled to {temp}°C. Resuming.")
+            print(f"  [Cooling...] Current Temp: {temp}°C", flush=True)
+        print(f"  [Safety Gate] GPU cooled to {temp}°C. Resuming.", flush=True)
 
 
 def get_weight_and_spectral_stats(model: nn.Module) -> dict:
