@@ -241,8 +241,42 @@ def get_dataloaders(dataset_name: str, batch_size: int, root: str = "datasets/")
         img_size = 28
     elif dataset_name.lower() == "cifar10":
         transform = Compose([ToTensor(), Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))])
-        train_dataset = CIFAR10(root=root, train=True, download=True, transform=transform)
-        test_dataset = CIFAR10(root=root, train=False, download=True, transform=transform)
+        try:
+            # Try to load existing local dataset (e.g. from GDrive restore) without downloading
+            train_dataset = CIFAR10(root=root, train=True, download=False, transform=transform)
+            test_dataset = CIFAR10(root=root, train=False, download=False, transform=transform)
+            # Force verification of local files presence
+            _ = train_dataset[0]
+            print("[Info] Loaded CIFAR-10 from local path.", flush=True)
+        except Exception:
+            print("[Info] Local CIFAR-10 files not found/incomplete. Falling back to HuggingFace uoft-cs/cifar10 mirror...", flush=True)
+            try:
+                from datasets import load_dataset
+                hf_ds = load_dataset("uoft-cs/cifar10", trust_remote_code=True)
+                
+                class HuggingFaceCIFAR10(torch.utils.data.Dataset):
+                    def __init__(self, hf_dataset_split, transform=None):
+                        self.dataset = hf_dataset_split
+                        self.transform = transform
+
+                    def __len__(self):
+                        return len(self.dataset)
+
+                    def __getitem__(self, idx):
+                        item = self.dataset[idx]
+                        img = item["img"]
+                        label = item["label"]
+                        if self.transform:
+                            img = self.transform(img)
+                        return img, label
+                
+                train_dataset = HuggingFaceCIFAR10(hf_ds["train"], transform=transform)
+                test_dataset = HuggingFaceCIFAR10(hf_ds["test"], transform=transform)
+                print("[Info] Successfully loaded CIFAR-10 from HuggingFace mirror.", flush=True)
+            except Exception as e:
+                print(f"[Warning] Failed to load from HuggingFace: {e}. Falling back to standard torchvision download...", flush=True)
+                train_dataset = CIFAR10(root=root, train=True, download=True, transform=transform)
+                test_dataset = CIFAR10(root=root, train=False, download=True, transform=transform)
         in_channels = 3
         img_size = 32
     else:

@@ -98,7 +98,7 @@ def ce_normal_init(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     dtype: torch.dtype = torch.float32,
-    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    assignment: Literal["sequential", "shuffled", "hash_indexed", "lcg", "prime_stride"] = "sequential",
     orthogonalize: bool = False,
 ) -> torch.Tensor:
     """Create a weight tensor initialized via Copeland–Erdős Normal (CE-N).
@@ -171,7 +171,7 @@ def ce_uniform_init(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     dtype: torch.dtype = torch.float32,
-    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    assignment: Literal["sequential", "shuffled", "hash_indexed", "lcg", "prime_stride"] = "sequential",
     orthogonalize: bool = False,
 ) -> torch.Tensor:
     """Create a weight tensor initialized via Copeland–Erdős Uniform (CE-U).
@@ -229,7 +229,7 @@ def ce_init_(
     gain: float | None = None,
     fan_mode: Literal["fan_in", "fan_out"] = "fan_in",
     mode: Literal["normal", "uniform"] = "normal",
-    assignment: Literal["sequential", "shuffled", "hash_indexed"] = "sequential",
+    assignment: Literal["sequential", "shuffled", "hash_indexed", "lcg", "prime_stride"] = "sequential",
     orthogonalize: bool = False,
 ) -> torch.Tensor:
     """In-place CE initialization (follows PyTorch nn.init convention)."""

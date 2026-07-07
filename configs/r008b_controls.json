@@ -1,0 +1,122 @@
+{
+  "experiment": {
+    "name": "R008b_controls",
+    "seed_range": [42, 43, 44, 45, 46],
+    "datasets": ["WikiText2"]
+  },
+  "data": {
+    "batch_size": 32,
+    "seq_len": 128
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2,
+    "vocab_size": 28996
+  },
+  "training": {
+    "epochs": 15,
+    "lr": 5e-4,
+    "cooldown_seconds": 5,
+    "device": "auto"
+  },
+  "init_methods": [
+    {
+      "name": "xavier",
+      "_comment": "#B1 Xavier-all (baseline, reused for comparison)"
+    },
+    {
+      "name": "selective",
+      "label": "ce_lcg_attn+xavier_ffn",
+      "m": 8,
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "ce_lcg",
+        "attn_vo": "ce_lcg",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#B2 CE-LCG-attn + Xavier-FFN (BEST R008, rerun for gradient stats)"
+    },
+    {
+      "name": "selective",
+      "label": "gaussian_matched_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "gaussian_matched",
+        "attn_vo": "gaussian_matched",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C1 Gaussian-attn (CE-std matched) + Xavier-FFN — isolate CE-structure from scale"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_gain1.4_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier_gain_1.4",
+        "attn_vo": "xavier_gain_1.4",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C2 Xavier-gain=1.4-attn + Xavier-FFN — isolate CE from gain mismatch"
+    },
+    {
+      "name": "selective",
+      "label": "orthogonal_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "orthogonal",
+        "attn_vo": "orthogonal",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C3 Orthogonal-attn + Xavier-FFN — test spectral conditioning"
+    },
+    {
+      "name": "selective",
+      "label": "uniform_matched_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "uniform_matched",
+        "attn_vo": "uniform_matched",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C4 Uniform-attn (CE-std matched) + Xavier-FFN — another random control"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_gain1.2_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier_gain_1.2",
+        "attn_vo": "xavier_gain_1.2",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C5 Xavier-gain=1.2 sweep"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_gain1.6_attn+xavier_ffn",
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier_gain_1.6",
+        "attn_vo": "xavier_gain_1.6",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#C6 Xavier-gain=1.6 sweep"
+    }
+  ]
+}

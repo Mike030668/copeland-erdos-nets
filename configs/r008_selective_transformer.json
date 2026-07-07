@@ -1,0 +1,114 @@
+{
+  "experiment": {
+    "name": "R008_selective_transformer",
+    "seed_range": [42, 43, 44, 45, 46],
+    "datasets": ["WikiText2"]
+  },
+  "data": {
+    "batch_size": 32,
+    "seq_len": 128
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2,
+    "vocab_size": 28996
+  },
+  "training": {
+    "epochs": 15,
+    "lr": 5e-4,
+    "cooldown_seconds": 5,
+    "device": "auto"
+  },
+  "init_methods": [
+    {
+      "name": "xavier",
+      "_comment": "#1 Xavier-all (baseline)"
+    },
+    {
+      "name": "he",
+      "_comment": "#2 He-all (baseline)"
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [10000],
+      "params": {"assignment": "shuffled"},
+      "_comment": "#3 CE-shuf-all (best R007)"
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0],
+      "params": {"assignment": "hash_indexed"},
+      "_comment": "#4 CE-Hash-all (NEW)"
+    },
+    {
+      "name": "ce_n",
+      "kind": "he",
+      "m": 8,
+      "offsets": [0],
+      "params": {"assignment": "lcg"},
+      "_comment": "#5 CE-LCG-all (NEW)"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_attn+ce_hash_ffn",
+      "m": 8,
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier",
+        "attn_vo": "xavier",
+        "ffn": "ce_hash",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#6 Xavier-attn + CE-Hash-FFN"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_attn+ce_lcg_ffn",
+      "m": 8,
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier",
+        "attn_vo": "xavier",
+        "ffn": "ce_lcg",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#7 Xavier-attn + CE-LCG-FFN (MAIN TEST)"
+    },
+    {
+      "name": "selective",
+      "label": "xavier_qk+ce_lcg_vo_ffn",
+      "m": 8,
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "xavier",
+        "attn_vo": "ce_lcg",
+        "ffn": "ce_lcg",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#8 Xavier-QK + CE-LCG-VO-FFN"
+    },
+    {
+      "name": "selective",
+      "label": "ce_lcg_attn+xavier_ffn",
+      "m": 8,
+      "offsets": [0],
+      "rules": {
+        "attn_qk": "ce_lcg",
+        "attn_vo": "ce_lcg",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      },
+      "_comment": "#9 CE-LCG-attn + Xavier-FFN (inverted)"
+    }
+  ]
+}

@@ -22,6 +22,23 @@ import numpy as np
 # Cache for primes to avoid redundant calculations across layers
 _PRIME_CACHE: list[int] = []
 
+
+def _is_prime(n: int) -> bool:
+    """Check primality via trial division (6k±1 optimization)."""
+    if n < 2:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+
 def prime_generator(initial_limit: int = 10000000) -> Generator[int, None, None]:
     """Yield successive prime numbers using a segmented-ready sieve.
     Automatically extends the cache if needed.

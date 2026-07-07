@@ -1,0 +1,72 @@
+{
+  "experiment": {
+    "name": "R008_long_phase1",
+    "seed_range": [42, 43, 44, 45, 46],
+    "datasets": ["WikiText2"]
+  },
+  "data": {
+    "batch_size": 32,
+    "seq_len": 128
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2,
+    "vocab_size": 28996
+  },
+  "training": {
+    "epochs": 50,
+    "lr": 5e-4,
+    "weight_decay": 0,
+    "cooldown_seconds": 5,
+    "device": "auto"
+  },
+  "init_methods": [
+    {
+      "name": "xavier",
+      "weight_decay": 0,
+      "_comment": "Xavier baseline 50 epochs"
+    },
+    {
+      "name": "selective",
+      "label": "orthogonal_attn+xavier_ffn",
+      "offsets": [0],
+      "weight_decay": 0,
+      "rules": {
+        "attn_qk": "orthogonal",
+        "attn_vo": "orthogonal",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      }
+    },
+    {
+      "name": "selective",
+      "label": "xavier_gain1.2_attn+xavier_ffn",
+      "offsets": [0],
+      "weight_decay": 0,
+      "rules": {
+        "attn_qk": "xavier_gain_1.2",
+        "attn_vo": "xavier_gain_1.2",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      }
+    },
+    {
+      "name": "selective",
+      "label": "ce_lcg_attn+xavier_ffn",
+      "m": 8,
+      "offsets": [0],
+      "weight_decay": 0,
+      "rules": {
+        "attn_qk": "ce_lcg",
+        "attn_vo": "ce_lcg",
+        "ffn": "xavier",
+        "lm_head": "xavier",
+        "default": "xavier"
+      }
+    }
+  ]
+}
