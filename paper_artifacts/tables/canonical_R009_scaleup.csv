@@ -1,0 +1,5 @@
+experiment_id,method,model,dataset,epochs,seeds,weight_decay,best_ppl,best_ppl_std,best_epoch,final_ppl,overfit_ratio,vs_xavier_percent,raw_result_path,config_path
+R009,xavier_baseline,4-layer d=256,WikiText-2,25,5,0.1,219.58473716407192,1.0171576395952706,5.0,1532.3375932172532,6.97834290765074,0,raw/R009_scaleup_results.json,configs/r009_scaleup.json
+R009,orthogonal_attn+xavier_ffn,4-layer d=256,WikiText-2,25,5,0.1,189.10403312795077,1.223105952584899,4.0,12505.811877396638,66.13191517144962,13.881066794431263,raw/R009_scaleup_results.json,configs/r009_scaleup.json
+R009,xavier_gain1.2_attn+xavier_ffn,4-layer d=256,WikiText-2,25,5,0.1,190.41000544698713,1.358428941254667,4.0,9997.270966715823,52.50391618469444,13.286320394520715,raw/R009_scaleup_results.json,configs/r009_scaleup.json
+R009,ce_lcg_attn+xavier_ffn,4-layer d=256,WikiText-2,25,5,0.1,202.46681428052085,1.8764974556241525,4.4,4164.618497690911,20.569388185862245,7.795588666420245,raw/R009_scaleup_results.json,configs/r009_scaleup.json

@@ -1,0 +1,9 @@
+experiment_id,method,model,dataset,epochs,seeds,weight_decay,best_ppl,best_ppl_std,best_epoch,final_ppl,overfit_ratio,vs_xavier_percent,raw_result_path,config_path
+R008b,xavier_baseline,2-layer,WT2,15,5,0.01,306.1964067442956,1.969089215134219,0.0,363.4691644254466,1.1870458190222313,0,raw/R008b_results.json,configs/r008b_controls.json
+R008b,ce_lcg_attn+xavier_ffn,2-layer,WT2,15,5,0.01,234.5861544388731,0.9646685173969293,0.0,542.3442633847795,2.3119193231248434,23.387032221192637,raw/R008b_results.json,configs/r008b_controls.json
+R008b,orthogonal_attn+xavier_ffn,2-layer,WT2,15,5,0.01,230.97624102229142,1.8836221430085922,0.0,949.6004547053047,4.111247332203572,24.56598577422905,raw/R008b_results.json,configs/r008b_controls.json
+R008-long,orthogonal_attn+xavier_ffn,2-layer,WT2,50,5,0.1,227.88586092491786,1.794401828447108,5.0,3947.277399416558,17.321291384185866,nan,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,2-layer,WT2,50,5,0.1,230.0271470941046,0.8830327262222567,5.4,2324.605133419524,10.105786046498777,nan,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R009,xavier_baseline,4-layer,WT2,25,5,0.1,219.58473716407192,1.0171576395952706,5.0,1532.3375932172532,6.97834290765074,0,raw/R009_scaleup_results.json,configs/r009_scaleup.json
+R009,orthogonal_attn+xavier_ffn,4-layer,WT2,25,5,0.1,189.10403312795077,1.223105952584899,4.0,12505.811877396638,66.13191517144962,13.881066794431263,raw/R009_scaleup_results.json,configs/r009_scaleup.json
+R009,ce_lcg_attn+xavier_ffn,4-layer,WT2,25,5,0.1,202.46681428052085,1.8764974556241525,4.4,4164.618497690911,20.569388185862245,7.795588666420245,raw/R009_scaleup_results.json,configs/r009_scaleup.json
