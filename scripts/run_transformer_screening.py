@@ -604,45 +604,48 @@ def run_experiment(config: dict, output_dir: Path):
 
         # Google Drive Auto-Upload (optional, Colab-only; requires env flag + service account)
         gdrive_filename = config["experiment"].get("name", "transformer_screening") + "_results.json"
-        if os.environ.get("CE_NETS_ENABLE_GDRIVE_UPLOAD") == "1" and os.path.exists("/content/sa.json"):
-            print(f"  [K005] Path B active. Uploading {gdrive_filename} to GDrive...", flush=True)
-            try:
-                from pydrive2.auth import GoogleAuth
-                from pydrive2.drive import GoogleDrive
-                from oauth2client.service_account import ServiceAccountCredentials
+        if os.environ.get("CE_NETS_ENABLE_GDRIVE_UPLOAD") == "1":
+            sa_key_path = os.environ.get("CE_NETS_GDRIVE_SA_KEY", "/content/sa.json")
+            root_folder = os.environ.get("CE_NETS_GDRIVE_ROOT_FOLDER", "")
+            project_folder = os.environ.get("CE_NETS_GDRIVE_PROJECT_FOLDER", "")
+            if sa_key_path and os.path.exists(sa_key_path) and root_folder and project_folder:
+                print(f"  [GDrive] Uploading {gdrive_filename} via PyDrive2...", flush=True)
+                try:
+                    from pydrive2.auth import GoogleAuth
+                    from pydrive2.drive import GoogleDrive
+                    from oauth2client.service_account import ServiceAccountCredentials
 
-                scope = ["https://www.googleapis.com/auth/drive"]
-                creds = ServiceAccountCredentials.from_json_keyfile_name("/content/sa.json", scope)
-                gauth = GoogleAuth()
-                gauth.credentials = creds
-                drive = GoogleDrive(gauth)
+                    scope = ["https://www.googleapis.com/auth/drive"]
+                    creds = ServiceAccountCredentials.from_json_keyfile_name(sa_key_path, scope)
+                    gauth = GoogleAuth()
+                    gauth.credentials = creds
+                    drive = GoogleDrive(gauth)
 
-                def find_folder(drive_client, name, parent_id=None):
-                    if parent_id:
-                        q = f"title = '{name}' and '{parent_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-                    else:
-                        q = f"title = '{name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-                    file_list = drive_client.ListFile({"q": q}).GetList()
-                    return file_list[0]['id'] if file_list else None
+                    def find_folder(drive_client, name, parent_id=None):
+                        if parent_id:
+                            q = f"title = '{name}' and '{parent_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+                        else:
+                            q = f"title = '{name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+                        file_list = drive_client.ListFile({"q": q}).GetList()
+                        return file_list[0]['id'] if file_list else None
 
-                root_id = find_folder(drive, "agent-rules-tree-control")
-                if root_id:
-                    project_id = find_folder(drive, "copeland-erdos-nets_drive", root_id)
-                    if project_id:
-                        results_folder_id = find_folder(drive, "results", project_id)
-                        if results_folder_id:
-                            # Update existing file or create new
-                            q = f"title = '{gdrive_filename}' and '{results_folder_id}' in parents and trashed = false"
-                            file_list = drive.ListFile({"q": q}).GetList()
-                            if file_list:
-                                gfile = drive.CreateFile({"id": file_list[0]['id']})
-                            else:
-                                gfile = drive.CreateFile({"title": gdrive_filename, "parents": [{"id": results_folder_id}]})
-                            gfile.SetContentFile(str(results_path))
-                            gfile.Upload()
-                            print(f"  [K005-B] GDrive Direct Upload SUCCESS: {gdrive_filename}", flush=True)
-            except Exception as e:
-                print(f"  [Warning] GDrive Auto-Upload failed: {e}", flush=True)
+                    root_id = find_folder(drive, root_folder)
+                    if root_id:
+                        project_id = find_folder(drive, project_folder, root_id)
+                        if project_id:
+                            results_folder_id = find_folder(drive, "results", project_id)
+                            if results_folder_id:
+                                q = f"title = '{gdrive_filename}' and '{results_folder_id}' in parents and trashed = false"
+                                file_list = drive.ListFile({"q": q}).GetList()
+                                if file_list:
+                                    gfile = drive.CreateFile({"id": file_list[0]['id']})
+                                else:
+                                    gfile = drive.CreateFile({"title": gdrive_filename, "parents": [{"id": results_folder_id}]})
+                                gfile.SetContentFile(str(results_path))
+                                gfile.Upload()
+                                print(f"  [GDrive] Upload SUCCESS: {gdrive_filename}", flush=True)
+                except Exception as e:
+                    print(f"  [Warning] GDrive upload failed: {e}", flush=True)
 
         # Cool down and GC
         time.sleep(config["training"]["cooldown_seconds"])

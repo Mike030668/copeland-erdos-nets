@@ -8,6 +8,8 @@ Pre-release verification for `copeland-erdos-nets`.
 - [ ] No private paths (`/home/mike`, `.control/`, `agent-rules-tree`) in public files
 - [ ] `.control/` is in `.gitignore` and not tracked
 - [ ] No PII in logs or test data
+- [ ] GDrive upload in all scripts gated behind `CE_NETS_ENABLE_GDRIVE_UPLOAD` env var
+- [ ] No hardcoded GDrive folder names in public scripts (use env vars)
 
 ## Clean Clone Install
 

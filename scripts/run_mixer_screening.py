@@ -470,21 +470,29 @@ def run_experiment(
     }
 
 
-def _upload_via_pydrive2(local_path: str, filename: str, sa_key_path: str = "/content/sa.json") -> bool:
-    """Upload/update file on GDrive via PyDrive2 using Service Account key."""
+def _upload_via_pydrive2(
+    local_path: str,
+    filename: str,
+    sa_key_path: str = "/content/sa.json",
+    root_folder: str = "",
+    project_folder: str = "",
+) -> bool:
+    """Upload/update file on GDrive via PyDrive2 using Service Account key.
+
+    Folder names are read from parameters (typically env vars) to avoid
+    hardcoding private infrastructure names in public code.
+    """
     try:
         from pydrive2.auth import GoogleAuth
         from pydrive2.drive import GoogleDrive
         from oauth2client.service_account import ServiceAccountCredentials
 
-        # 1. Authenticate via sa.json (headless, no OAuth popup)
         scope = ["https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_name(sa_key_path, scope)
         gauth = GoogleAuth()
         gauth.credentials = creds
         drive = GoogleDrive(gauth)
 
-        # Helper to find folder
         def find_folder(drive_client, name, parent_id=None):
             if parent_id:
                 q = f"title = '{name}' and '{parent_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
@@ -493,36 +501,34 @@ def _upload_via_pydrive2(local_path: str, filename: str, sa_key_path: str = "/co
             file_list = drive_client.ListFile({"q": q}).GetList()
             return file_list[0]['id'] if file_list else None
 
-        # Navigate: agent-rules-tree-control → copeland-erdos-nets_drive -> results
-        root_id = find_folder(drive, "agent-rules-tree-control")
+        root_id = find_folder(drive, root_folder)
         if not root_id:
-            print("[K005-B] Error: Root folder 'agent-rules-tree-control' not found.", flush=True)
+            print(f"[GDrive] Error: Root folder '{root_folder}' not found.", flush=True)
             return False
 
-        project_id = find_folder(drive, "copeland-erdos-nets_drive", root_id)
+        project_id = find_folder(drive, project_folder, root_id)
         if not project_id:
-            print("[K005-B] Error: Project folder 'copeland-erdos-nets_drive' not found.", flush=True)
+            print(f"[GDrive] Error: Project folder '{project_folder}' not found.", flush=True)
             return False
 
         results_id = find_folder(drive, "results", project_id)
         if not results_id:
-            print("[K005-B] Error: 'results' folder not found.", flush=True)
+            print("[GDrive] Error: 'results' folder not found.", flush=True)
             return False
 
-        # 3. Update existing file by ID (quota bypass)
         q = f"title = '{filename}' and '{results_id}' in parents and trashed = false"
         existing = drive.ListFile({"q": q}).GetList()
         if existing:
             gfile = drive.CreateFile({"id": existing[0]['id']})
             gfile.SetContentFile(local_path)
             gfile.Upload()
-            print(f"[K005-B] GDrive Direct Upload SUCCESS: {filename}", flush=True)
+            print(f"[GDrive] Upload SUCCESS: {filename}", flush=True)
             return True
         else:
-            print(f"[K005-B] WARNING: {filename} not found in GDrive — pre-create placeholder first", flush=True)
+            print(f"[GDrive] WARNING: {filename} not found — pre-create placeholder first", flush=True)
             return False
     except Exception as e:
-        print(f"[K005-B] Error during PyDrive2 upload: {e}", flush=True)
+        print(f"[GDrive] Error during upload: {e}", flush=True)
         return False
 
 
@@ -535,20 +541,27 @@ def _save_results(results: dict, output_dir: Path) -> None:
     n = len(results.get("runs", []))
     print(f"  [saved {n} runs to {results_path}]", flush=True)
 
+    # GDrive upload is optional — requires explicit env flag
+    if os.environ.get("CE_NETS_ENABLE_GDRIVE_UPLOAD") != "1":
+        return
+
     exp_name = results.get("experiment", "unknown_experiment")
     filename = f"{exp_name}_results.json"
 
-    # Path B: PyDrive2 + SA key (Preferred)
-    sa_key_path = "/content/sa.json"
-    if os.path.exists(sa_key_path):
-        print(f"[K005] Path B active. Uploading {filename} via PyDrive2...", flush=True)
-        success = _upload_via_pydrive2(str(results_path), filename, sa_key_path)
+    # Path B: PyDrive2 + SA key (preferred)
+    sa_key_path = os.environ.get("CE_NETS_GDRIVE_SA_KEY", "/content/sa.json")
+    root_folder = os.environ.get("CE_NETS_GDRIVE_ROOT_FOLDER", "")
+    project_folder = os.environ.get("CE_NETS_GDRIVE_PROJECT_FOLDER", "")
+
+    if sa_key_path and os.path.exists(sa_key_path) and root_folder and project_folder:
+        print(f"[GDrive] Uploading {filename} via PyDrive2...", flush=True)
+        success = _upload_via_pydrive2(str(results_path), filename, sa_key_path, root_folder, project_folder)
         if success:
             return
 
-    # Path A: drive.mount / local copy (Fallback)
-    gdrive_root_str = "/content/drive/MyDrive/agent-rules-tree-control/copeland-erdos-nets_drive"
-    if os.path.isdir(gdrive_root_str):
+    # Path A: mounted GDrive fallback
+    gdrive_root_str = os.environ.get("CE_NETS_GDRIVE_ROOT", "")
+    if gdrive_root_str and os.path.isdir(gdrive_root_str):
         try:
             gdrive_results_dir = Path(gdrive_root_str) / "results"
             gdrive_results_dir.mkdir(parents=True, exist_ok=True)
@@ -558,9 +571,9 @@ def _save_results(results: dict, output_dir: Path) -> None:
             with open(gdrive_tmp_path, "w") as f:
                 json.dump(results, f, indent=2)
             gdrive_tmp_path.rename(gdrive_path)
-            print(f"  [K005-A] Dual-saved via mounted GDrive: {gdrive_path}", flush=True)
+            print(f"  [GDrive] Dual-saved via mounted drive: {gdrive_path}", flush=True)
         except Exception as e:
-            print(f"  [Warning] [K005-A] Failed dual-save to GDrive: {e}", flush=True)
+            print(f"  [Warning] [GDrive] Failed dual-save: {e}", flush=True)
 
 
 def _get_run_id(dataset, init_name, seed, offset, scramble_seed, assignment=None, orthogonalize=None, matrix_shaped=None):
