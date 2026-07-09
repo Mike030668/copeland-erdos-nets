@@ -1,6 +1,6 @@
-"""Copeland-Erdős Nets: prime-number neural network initialization."""
+"""Copeland–Erdős Nets: deterministic initialization and layer-selective spectral/gain init."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .assignment import apply_assignment, apply_orthogonal
 from .ce_init import ce_init_, ce_normal_init, ce_uniform_init

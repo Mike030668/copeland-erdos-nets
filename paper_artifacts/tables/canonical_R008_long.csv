@@ -1,0 +1,4 @@
+experiment_id,method,model,dataset,epochs,seeds,weight_decay,best_ppl,best_ppl_std,best_epoch,final_ppl,overfit_ratio,vs_xavier_percent,raw_result_path,config_path
+R008-long,orthogonal_attn+xavier_ffn,2-layer d=128,WikiText-2,50,5,0.1,227.88586092491784,1.794401828447108,5.0,3947.277399416559,17.321291384185873,nan,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,2-layer d=128,WikiText-2,50,5,0.1,228.40916017588,1.5442518469708937,5.0,3482.405888791514,15.246349516411627,nan,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,2-layer d=128,WikiText-2,50,5,0.1,230.0271470941046,0.8830327262222567,5.4,2324.6051334195245,10.105786046498778,nan,raw/R008_long_p2_results.json,configs/r008_long_phase2.json

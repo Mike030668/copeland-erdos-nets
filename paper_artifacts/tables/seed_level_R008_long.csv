@@ -1,0 +1,16 @@
+experiment_id,method,seed,weight_decay,best_ppl,best_epoch,final_ppl,overfit_ratio,raw_result_path,config_path
+R008-long,ce_lcg_attn+xavier_ffn,42,0.1,230.06870012613874,6,2363.28047769886,10.272064285159844,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,43,0.1,228.75083450989464,5,2359.2988169076684,10.313836983207231,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,44,0.1,231.36966823697537,5,2390.5680943403063,10.332244985076517,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,45,0.1,229.49375393627622,6,2267.5245975624375,9.880550379563113,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,ce_lcg_attn+xavier_ffn,46,0.1,230.45277866123803,5,2242.3536805883496,9.730208911408155,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,orthogonal_attn+xavier_ffn,42,0.1,224.4629922742722,5,3878.630339787371,17.279598300320515,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,orthogonal_attn+xavier_ffn,43,0.1,228.53094125375216,5,3759.3812034012703,16.450206623124153,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,orthogonal_attn+xavier_ffn,44,0.1,229.1496669702994,5,3951.593882658329,17.24459797347427,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,orthogonal_attn+xavier_ffn,45,0.1,229.42514174491157,5,4033.9953517633207,17.5830570315112,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,orthogonal_attn+xavier_ffn,46,0.1,227.86056238135382,5,4112.786219472501,18.049574601633903,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,42,0.1,227.25985600120862,5,3584.1167113556453,15.771006698765946,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,43,0.1,226.65671991212528,5,3315.1372070908424,14.626247165211424,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,44,0.1,227.74214576655828,5,3396.5758274035925,14.91412938071275,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,45,0.1,230.79299509913946,5,3564.326009575579,15.443822322443049,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
+R008-long,xavier_gain1.2_attn+xavier_ffn,46,0.1,229.59408410036843,5,3551.873688531912,15.470231745950342,raw/R008_long_p2_results.json,configs/r008_long_phase2.json
