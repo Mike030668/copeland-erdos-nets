@@ -159,7 +159,8 @@ full evidence-to-claim mapping and prohibited claims.
 
 ## Limitations
 
-- Experiments limited to WikiText-2 on Tiny Transformers (2M–8M parameters).
+- Experiments limited to WikiText-2 on small decoder-only Transformers
+  (2-layer: ~13.3 M total / ~463 K non-embedding; 4-layer: ~29 M total / ~3.2 M non-embedding).
 - No evaluation on large LLMs or multi-domain benchmarks.
 - Long-run final PPL shows significant overfitting for all non-baseline methods.
 

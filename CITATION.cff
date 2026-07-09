@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "Layer-Selective Spectral/Gain Initialization of Attention Projections"
+message: "If you use this software or refer to the results, please cite it as below."
+authors:
+  - family-names: Puzitskiy
+    given-names: Mikhail
+year: 2026
+license: MIT
+repository-code: "https://github.com/Mike030668/copeland-erdos-nets"
+keywords:
+  - transformer
+  - initialization
+  - attention
+  - spectral-conditioning
+  - copeland-erdos

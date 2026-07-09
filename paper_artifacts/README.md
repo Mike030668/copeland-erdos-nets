@@ -36,7 +36,7 @@ paper_artifacts/
 |---|---|---|
 | fig01 | R008b | Best PPL comparison (bar chart) |
 | fig02 | R008b | Gain sweep (Xavier gain = 1.0–1.6) |
-| fig03 | R008b | Spectral conditioning (singular value distribution) |
+| fig03 | R008b | Spectral diagnostics: condition number and effective rank |
 | fig04 | R008-long | Weight-decay sweep results |
 | fig05 | R008-long | Overfitting dynamics (train vs val PPL) |
 | fig06 | R009 | 4-layer scale-up best PPL |

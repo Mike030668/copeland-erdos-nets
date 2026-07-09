@@ -602,9 +602,9 @@ def run_experiment(config: dict, output_dir: Path):
             
         print(f"  [saved {len(completed_runs)} runs to {results_path}]", flush=True)
 
-        # Google Drive Auto-Upload Trigger (K005 §3)
+        # Google Drive Auto-Upload (optional, Colab-only; requires env flag + service account)
         gdrive_filename = config["experiment"].get("name", "transformer_screening") + "_results.json"
-        if os.path.exists("/content/sa.json"):
+        if os.environ.get("CE_NETS_ENABLE_GDRIVE_UPLOAD") == "1" and os.path.exists("/content/sa.json"):
             print(f"  [K005] Path B active. Uploading {gdrive_filename} to GDrive...", flush=True)
             try:
                 from pydrive2.auth import GoogleAuth
