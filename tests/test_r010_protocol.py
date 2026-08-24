@@ -70,7 +70,9 @@ def test_t0_invariance_per_method(screening, method):
     allow = attention_allowlist(base)
     clone = clone_from_base_state(base, factory)
     apply_attention_intervention(clone, method, seeds, allowlist=allow)
-    unchanged = assert_t0_invariance(clone, hashes, allow)
+    unchanged, changed_rows = assert_t0_invariance(clone, hashes, allow)
+    assert {r["name"] for r in changed_rows} == set(allow)
+    assert len(changed_rows) == 8
     assert "token_emb.weight" in unchanged
     assert "pos_emb" in unchanged
     assert "lm_head.weight" in unchanged
@@ -135,6 +137,23 @@ def test_batch_order_parity_same_seed():
     assert hash_int_sequence(p1[0]) == hash_int_sequence(p2[0])
     p3 = epoch_index_permutations(17, 3, seed_shuffle=99)
     assert p1 != p3
+
+
+def test_one_allowlisted_tensor_left_unchanged_fails(screening):
+    seeds = derive_seeds(42)
+    factory = _factory(screening)
+    base, hashes = build_base_state(factory, seeds.seed_model)
+    allow = attention_allowlist(base)
+    clone = clone_from_base_state(base, factory)
+    apply_attention_intervention(clone, "xavier_g1.0", seeds, allowlist=allow)
+    # restore one allowlisted tensor to base_state
+    victim = allow[0]
+    with torch.no_grad():
+        dict(clone.named_parameters())[victim].copy_(
+            dict(base.named_parameters())[victim]
+        )
+    with pytest.raises(AssertionError, match="left unchanged"):
+        assert_t0_invariance(clone, hashes, allow)
 
 
 def test_historical_screening_untouched():

@@ -222,21 +222,31 @@ def assert_t0_invariance(
     model: nn.Module,
     base_hashes: dict[str, str],
     allowlist: list[str],
-) -> dict[str, str]:
+) -> tuple[dict[str, str], list[dict[str, str]]]:
+    """Require changed_allowlisted_set == exact_allowlist_set."""
     current = collect_named_tensors(model)
-    changed: list[str] = []
     unchanged: dict[str, str] = {}
-    allow = set(allowlist)
+    changed_rows: list[dict[str, str]] = []
+    allow = list(allowlist)
+    allow_set = set(allow)
     for name, tensor in current.items():
         digest = tensor_sha256(tensor)
         base = base_hashes.get(name)
         if base is None:
             raise AssertionError(f"tensor {name} missing from base_state")
-        if name in allow:
+        if name in allow_set:
             if digest == base:
-                unchanged[name] = digest
-            else:
-                changed.append(name)
+                raise AssertionError(
+                    f"allowlisted tensor {name} left unchanged vs base_state"
+                )
+            changed_rows.append(
+                {
+                    "name": name,
+                    "base_sha256": base,
+                    "post_intervention_sha256": digest,
+                    "changed": "true",
+                }
+            )
             continue
         if digest != base:
             raise AssertionError(
@@ -244,12 +254,18 @@ def assert_t0_invariance(
                 f"(was {base[:12]} now {digest[:12]})"
             )
         unchanged[name] = digest
-    if not changed:
-        raise AssertionError("allowlisted attention weights did not change vs base_state")
-    missing = allow - set(changed) - set(unchanged)
-    if missing:
-        raise AssertionError(f"allowlist tensors missing after intervention: {sorted(missing)}")
-    return unchanged
+    changed_names = {row["name"] for row in changed_rows}
+    if changed_names != allow_set:
+        missing = sorted(allow_set - changed_names)
+        extra = sorted(changed_names - allow_set)
+        raise AssertionError(
+            f"changed-set != allowlist; missing={missing} extra={extra}"
+        )
+    if len(changed_rows) != len(allow):
+        raise AssertionError(
+            f"expected {len(allow)} changed allowlisted tensors, got {len(changed_rows)}"
+        )
+    return unchanged, changed_rows
 
 
 def spectral_row(name: str, weight: torch.Tensor, *, state: str, method: str, seed: int) -> dict:

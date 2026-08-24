@@ -232,6 +232,7 @@ def main() -> None:
     best_spectral = []
     final_spectral = []
     unchanged_rows = []
+    changed_hash_rows = []
     protocol_deviations: list[str] = []
 
     for method in methods:
@@ -245,10 +246,21 @@ def main() -> None:
             ce_m=int(cfg["init"]["ce_m"]),
             ce_offset_blocks=int(cfg["init"]["ce_offset_blocks"]),
         )
-        unchanged = assert_t0_invariance(model, base_hashes, allow)
+        unchanged, changed_rows = assert_t0_invariance(model, base_hashes, allow)
         for name, digest in unchanged.items():
             unchanged_rows.append(
                 {"method": method, "seed": seed, "name": name, "sha256": digest}
+            )
+        for row in changed_rows:
+            changed_hash_rows.append(
+                {
+                    "method": method,
+                    "seed": seed,
+                    "name": row["name"],
+                    "base_sha256": row["base_sha256"],
+                    "post_intervention_sha256": row["post_intervention_sha256"],
+                    "changed": row["changed"],
+                }
             )
         t0_spectral.extend(
             collect_spectral(model, allow, state="t0", method=method, seed=seed)
@@ -341,6 +353,7 @@ def main() -> None:
     )
     write_csv(out / "base_state_hashes.csv", [{"name": k, "sha256": v} for k, v in sorted(base_hashes.items())])
     write_csv(out / "unchanged_parameter_hashes.csv", unchanged_rows)
+    write_csv(out / "changed_parameter_hashes.csv", changed_hash_rows)
     write_csv(out / "batch_order_hashes.csv", batch_rows)
     write_csv(out / "smoke_metrics.csv", metrics)
     write_csv(out / "t0_spectral.csv", t0_spectral)
@@ -369,8 +382,43 @@ Model/attention RNG does not advance the shuffle generator.
         + ("None.\n" if not protocol_deviations else "\n".join(f"- {d}" for d in protocol_deviations) + "\n"),
         encoding="utf-8",
     )
+    import platform
+    import numpy as np
+    try:
+        import datasets as hf_datasets
+        datasets_ver = hf_datasets.__version__
+    except Exception:
+        datasets_ver = "unavailable"
+    try:
+        import transformers
+        transformers_ver = transformers.__version__
+    except Exception:
+        transformers_ver = "unavailable"
+    gpu_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none"
+    cuda_runtime = torch.version.cuda or "none"
+    try:
+        import subprocess as _sp
+        driver = _sp.check_output(
+            ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+            text=True,
+        ).strip().splitlines()[0]
+    except Exception:
+        driver = "unavailable"
     (out / "environment.txt").write_text(
-        f"python={os.sys.version}\ntorch={torch.__version__}\ncuda={torch.cuda.is_available()}\ndevice={device}\n",
+        (
+            f"python={os.sys.version}\n"
+            f"platform={platform.platform()}\n"
+            f"torch={torch.__version__}\n"
+            f"numpy={np.__version__}\n"
+            f"datasets={datasets_ver}\n"
+            f"transformers={transformers_ver}\n"
+            f"cuda_available={torch.cuda.is_available()}\n"
+            f"cuda_runtime={cuda_runtime}\n"
+            f"gpu_model={gpu_name}\n"
+            f"driver_version={driver}\n"
+            f"device={device}\n"
+            f"git_commit={git_commit()}\n"
+        ),
         encoding="utf-8",
     )
     dump_json(
