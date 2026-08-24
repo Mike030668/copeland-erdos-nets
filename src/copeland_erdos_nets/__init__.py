@@ -13,6 +13,7 @@ from .prime_codebook import (
     project_to_codebook_,
 )
 from .sobol_init import sobol_init_, sobol_normal_init, sobol_uniform_init
+from . import r010_protocol
 
 __all__ = [
     "STECodebookFn",
@@ -31,5 +32,6 @@ __all__ = [
     "sobol_init_",
     "sobol_normal_init",
     "sobol_uniform_init",
+    "r010_protocol",
     "take_blocks",
 ]

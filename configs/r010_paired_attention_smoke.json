@@ -1,0 +1,35 @@
+{
+  "experiment": {
+    "name": "R010_paired_attention_init_confirmation_smoke",
+    "mode": "smoke",
+    "seed": 42,
+    "methods": ["xavier_g1.0", "orthogonal", "xavier_g1.2", "ce_lcg"],
+    "primary_baseline": "xavier_g1.0"
+  },
+  "data": {
+    "dataset": "Salesforce/wikitext",
+    "config_name": "wikitext-2-raw-v1",
+    "tokenizer": "gpt2",
+    "batch_size": 32,
+    "seq_len": 128,
+    "train_drop_last": true,
+    "val_drop_last": true,
+    "test_drop_last": false
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2
+  },
+  "training": {
+    "epochs": 2,
+    "lr": 5e-4,
+    "weight_decay": 0.01,
+    "device": "auto"
+  },
+  "init": {
+    "ce_m": 8,
+    "ce_offset_blocks": 0
+  }
+}
