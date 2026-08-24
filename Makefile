@@ -20,5 +20,5 @@ format:
 	$(PYTHON) -m ruff format src/ tests/
 
 install:
-	uv venv $(VENV) --python 3.12
-	uv pip install --python $(PYTHON) -e '.[dev]'
+	UV_CACHE_DIR=/srv/zones/Z2-A001/uv-cache uv venv $(VENV) --python 3.12
+	UV_CACHE_DIR=/srv/zones/Z2-A001/uv-cache uv pip install --python $(PYTHON) -e '.[dev]'
