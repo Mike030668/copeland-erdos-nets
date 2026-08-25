@@ -157,6 +157,38 @@ def wait_for_cooling(gpu_threshold: int = 78, cpu_threshold: int = 90, interval:
         time.sleep(interval)
 
 
+def stop_requested(out: Path) -> bool:
+    """Cooperative halt after a completed run. Same idea on Colab VM.
+
+    Create either file to stop before the *next* method×seed starts:
+      $OUT/STOP
+      $OUT/STOP_AFTER_RUN
+    """
+    return (out / "STOP").exists() or (out / "STOP_AFTER_RUN").exists()
+
+
+def write_stop_window(out: Path, *, finished: int, total: int, minutes_per_run: float = 10.5) -> None:
+    remaining = max(total - finished, 0)
+    payload = {
+        "finished": finished,
+        "total": total,
+        "remaining_runs": remaining,
+        "est_min_per_run": minutes_per_run,
+        "est_remaining_min": round(remaining * minutes_per_run, 1),
+        "safe_stop": "NOW — between runs (cooldown / before next Milestone)",
+        "unsafe_stop": "during an epoch — that method×seed will replay from epoch 1",
+        "how": f"touch {out / 'STOP'}",
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+    (out / "stop_window.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(
+        f"[stop-window] saved {finished}/{total}; "
+        f"~{payload['est_remaining_min']} min left; "
+        f"safe to stop NOW (touch {out / 'STOP'} before next run)",
+        flush=True,
+    )
+
+
 def write_heartbeat(path: Path, **payload) -> None:
     payload = {
         **payload,
@@ -601,6 +633,20 @@ def main() -> None:
             if cooldown > 0:
                 print(f"[cooldown] {cooldown}s", flush=True)
                 time.sleep(cooldown)
+            write_stop_window(out, finished=finished_units, total=total_units)
+            if stop_requested(out):
+                print("[stop] STOP file present — exiting after completed run", flush=True)
+                append_jsonl(run_log, {"event": "cooperative_stop", "finished": finished_units})
+                write_heartbeat(
+                    heartbeat_path,
+                    job_id=f"r010_{mode}",
+                    status="stopped",
+                    progress=f"{finished_units}/{total_units}",
+                    progress_pct=100.0 * finished_units / total_units,
+                    current_phase="cooperative_stop",
+                    host=platform.node(),
+                )
+                return
 
     dump_json(out / "resolved_config.json", cfg)
     dump_json(
