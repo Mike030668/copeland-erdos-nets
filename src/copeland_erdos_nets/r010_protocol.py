@@ -44,6 +44,7 @@ METHOD_ATTN_SALT = {
 SEED_MODEL_OFFSET = 0
 SEED_ATTENTION_OFFSET = 10007
 SEED_SHUFFLE_OFFSET = 20011
+SEED_EMBEDDING_OFFSET = 30013
 ATTN_STREAM_STRIDE = 1_000_003
 
 
@@ -53,6 +54,7 @@ class R010Seeds:
     seed_model: int
     seed_attention: int
     seed_shuffle: int
+    seed_embedding: int
 
     def attention_seed_for(self, method: str) -> int:
         if method not in METHOD_ATTN_SALT:
@@ -66,6 +68,7 @@ def derive_seeds(experiment_seed: int) -> R010Seeds:
         seed_model=int(experiment_seed) + SEED_MODEL_OFFSET,
         seed_attention=int(experiment_seed) + SEED_ATTENTION_OFFSET,
         seed_shuffle=int(experiment_seed) + SEED_SHUFFLE_OFFSET,
+        seed_embedding=int(experiment_seed) + SEED_EMBEDDING_OFFSET,
     )
 
 
@@ -158,6 +161,37 @@ def clone_from_base_state(base_model: nn.Module, factory: Callable[[], nn.Module
     clone = factory()
     clone.load_state_dict(base_model.state_dict())
     return clone
+
+
+EMBEDDING_MODES = ("constructor", "historical_xavier")
+
+
+def apply_embedding_intervention(
+    model: nn.Module,
+    mode: str,
+    seeds: R010Seeds,
+) -> dict:
+    """A0 constructor = no-op. A1 = isolated xavier_normal_ gain=1.0 on token_emb."""
+    if mode not in EMBEDDING_MODES:
+        raise ValueError(f"unknown embedding mode {mode!r}")
+    if mode == "constructor":
+        return {
+            "embedding_mode": mode,
+            "seed_embedding": seeds.seed_embedding,
+            "applied": False,
+        }
+    if not hasattr(model, "token_emb"):
+        raise AssertionError("model has no token_emb")
+    _cpu_init_with_seed(
+        model.token_emb.weight.data,
+        seeds.seed_embedding,
+        lambda w: nn.init.xavier_normal_(w, gain=1.0),
+    )
+    return {
+        "embedding_mode": mode,
+        "seed_embedding": seeds.seed_embedding,
+        "applied": True,
+    }
 
 
 def _cpu_init_with_seed(weight: torch.Tensor, seed: int, fn) -> None:
@@ -266,6 +300,36 @@ def assert_t0_invariance(
             f"expected {len(allow)} changed allowlisted tensors, got {len(changed_rows)}"
         )
     return unchanged, changed_rows
+
+
+def assert_t0_factorial(
+    model: nn.Module,
+    base_hashes: dict[str, str],
+    allowlist: list[str],
+    embedding_mode: str,
+) -> tuple[dict[str, str], list[dict[str, str]]]:
+    """Attention 8-tensor contract plus embedding A0/A1 rules."""
+    current = collect_named_tensors(model)
+    emb_name = "token_emb.weight"
+    emb_now = tensor_sha256(current[emb_name])
+    emb_base = base_hashes[emb_name]
+    if embedding_mode == "constructor":
+        if emb_now != emb_base:
+            raise AssertionError("A0 token_emb changed vs base_state")
+        return assert_t0_invariance(model, base_hashes, allowlist)
+    if embedding_mode != "historical_xavier":
+        raise ValueError(embedding_mode)
+    if emb_now == emb_base:
+        raise AssertionError("A1 token_emb left unchanged vs base_state")
+    # Temporarily treat embedding as already-applied: compare other non-attn to base,
+    # and attn to post-embedding state by using a patched base for attention check.
+    patched = dict(base_hashes)
+    patched[emb_name] = emb_now  # so invariance sees embedding as "base" and requires attn change only
+    unchanged, changed = assert_t0_invariance(model, patched, allowlist)
+    # embedding should not appear in changed allowlist
+    if any(r["name"] == emb_name for r in changed):
+        raise AssertionError("token_emb leaked into attention allowlist")
+    return unchanged, changed
 
 
 def spectral_row(name: str, weight: torch.Tensor, *, state: str, method: str, seed: int) -> dict:

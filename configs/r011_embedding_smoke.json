@@ -1,0 +1,40 @@
+{
+  "experiment": {
+    "name": "R011_embedding_init_factorial_ablation_smoke",
+    "mode": "r011_smoke",
+    "seed": 42,
+    "cells": [
+      {"cell": "A1B0", "embedding_mode": "historical_xavier", "attention": "xavier_g1.0"},
+      {"cell": "A1B1", "embedding_mode": "historical_xavier", "attention": "orthogonal"}
+    ]
+  },
+  "data": {
+    "dataset": "Salesforce/wikitext",
+    "config_name": "wikitext-2-raw-v1",
+    "tokenizer": "gpt2",
+    "batch_size": 32,
+    "seq_len": 128,
+    "train_drop_last": true,
+    "val_drop_last": true,
+    "test_drop_last": false
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2
+  },
+  "training": {
+    "epochs": 1,
+    "lr": 5e-4,
+    "weight_decay": 0.01,
+    "device": "auto",
+    "thermal_threshold": 78,
+    "cpu_thermal_threshold": 90,
+    "cooldown_seconds": 15
+  },
+  "init": {
+    "ce_m": 8,
+    "ce_offset_blocks": 0
+  }
+}
