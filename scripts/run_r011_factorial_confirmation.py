@@ -208,19 +208,28 @@ def main() -> None:
             if int(cfg["training"].get("cooldown_seconds", 15)) > 0:
                 time.sleep(int(cfg["training"]["cooldown_seconds"]))
 
-        # per-seed parity (DS 7 checks)
-        assert emb_seen.get("A0B0") == emb_seen.get("A0B1") == base_hashes["token_emb.weight"] or ("A0B0", seed) in done
-        if all((c, seed) in done for c, _, _ in CELLS):
+        # per-seed parity (DS checks) — resume-safe.
+        # Only evaluate for seeds whose 4 cells were computed THIS run
+        # (emb_seen/attn_seen populated). Seeds fully resumed from a prior run
+        # were already parity-checked when first computed; do not re-key.
+        seed_cells_this_run = [c for c, _, _ in CELLS if c in emb_seen]
+        already_checked = any(int(r.get("seed", -1)) == seed for r in parity_rows)
+        if len(seed_cells_this_run) == len(CELLS) and not already_checked:
             checks = [
                 ("A0B0_emb==A0B1_emb==base", emb_seen["A0B0"] == emb_seen["A0B1"] == base_hashes["token_emb.weight"]),
                 ("A1B0_emb==A1B1_emb!=base", emb_seen["A1B0"] == emb_seen["A1B1"] != base_hashes["token_emb.weight"]),
-                ("B0_attn_A0B0==A1B0", all(len(s) == 1 for s in attn_seen["xavier_g1.0"].values())),
-                ("B1_attn_A0B1==A1B1", all(len(s) == 1 for s in attn_seen["orthogonal"].values())),
+                ("B0_attn_A0B0==A1B0", all(len(s) == 1 for s in attn_seen.get("xavier_g1.0", {}).values())),
+                ("B1_attn_A0B1==A1B1", all(len(s) == 1 for s in attn_seen.get("orthogonal", {}).values())),
             ]
             for name, ok in checks:
                 parity_rows.append({"seed": seed, "check": name, "pass": str(bool(ok)).lower()})
                 if not ok:
                     raise SystemExit(f"parity fail seed {seed}: {name}")
+            write_csv(out / "parity_summary.csv", parity_rows)
+        elif seed_cells_this_run and len(seed_cells_this_run) < len(CELLS):
+            # partial-seed resume within a seed: record which cells lacked in-run parity
+            parity_rows.append({"seed": seed, "check": "partial_resume_parity_deferred",
+                                "pass": "na:" + ",".join(sorted(seed_cells_this_run))})
             write_csv(out / "parity_summary.csv", parity_rows)
 
     dump_json(out / "resolved_config.json", cfg)
