@@ -1,0 +1,8 @@
+{
+  "experiment": {"name": "R011_seed_atomic", "mode": "seed_atomic"},
+  "data": {"dataset":"Salesforce/wikitext","config_name":"wikitext-2-raw-v1","tokenizer":"gpt2",
+           "batch_size":32,"seq_len":128,"train_drop_last":true,"val_drop_last":true,"test_drop_last":false},
+  "model": {"d_model":128,"n_heads":4,"d_ff":512,"n_layers":2},
+  "training": {"epochs":15,"lr":5e-4,"weight_decay":0.01,"device":"auto"},
+  "init": {"ce_m":8,"ce_offset_blocks":0}
+}
