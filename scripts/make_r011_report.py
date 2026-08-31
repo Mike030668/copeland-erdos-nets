@@ -110,7 +110,7 @@ def canonical(v2dir,out,noncanon=False):
         ax.scatter(bv,fv,label=LABEL[c])
     lim=ax.get_xlim(); ax.plot(lim,lim,"k--",lw=0.5)
     ax.set_xlabel("best val PPL"); ax.set_ylabel("final val PPL"); ax.legend(fontsize=7)
-    ax.set_title("Final vs best validation (overfit view)")
+    ax.set_title("Final vs best validation (late-epoch validation degradation)")
     save(fig,"fig07_final_vs_best_validation.png")
 
     # fig08 embedding t0 scale stats (from t0_spectral if present else placeholder)
@@ -183,7 +183,7 @@ Lower PPL better; negative Δ = improvement.
 t0/best/final spectral in `diagnostics/`; batch-order + hash parity in `manifests/`.
 
 ## Failure modes
-Overfitting after best epoch (see fig07); A1 cells select earlier best epochs.
+Late-epoch validation degradation after best epoch (see fig07); A1 cells select earlier best epochs. Not labeled overfitting without a dedicated train-vs-val generalization analysis.
 
 ## Limitations
 n=5 seeds; single architecture/dataset; held-out test PPL (historical R008 used
