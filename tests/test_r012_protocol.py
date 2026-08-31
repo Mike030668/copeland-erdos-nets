@@ -111,3 +111,19 @@ def test_rng_policy_matches_config():
     assert cfg=={"seed_model_offset":r.SEED_MODEL_OFFSET,
                  "seed_shuffle_offset":r.SEED_SHUFFLE_OFFSET,
                  "seed_embedding_redraw_offset":r.SEED_EMBEDDING_OFFSET}
+
+
+def test_runtime_driver_only_mismatch(tmp_path):
+    import importlib.util, platform, torch, numpy, datasets, transformers, pytest as _p
+    spec=importlib.util.spec_from_file_location("r012run2", ROOT/"scripts"/"run_r012_seed_atomic.py")
+    m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    # freeze = EXACT current runtime except driver (sole intentional mismatch)
+    gpu=torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"
+    freeze={"gpu":gpu,"python":platform.python_version(),"torch":torch.__version__,
+            "cuda":torch.version.cuda or "none","numpy":numpy.__version__,
+            "datasets":datasets.__version__,"transformers":transformers.__version__,
+            "driver":"999.99.99"}
+    with _p.raises(SystemExit):
+        m.assert_runtime(freeze, tmp_path)
+    log=(tmp_path/"runtime_assertion.log").read_text()
+    assert "driver" in log and "mismatch=['driver']" in log

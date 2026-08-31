@@ -46,6 +46,34 @@ def assert_runtime(freeze: dict, out: Path):
         raise SystemExit(f"RUNTIME HARD STOP mismatch={mism}")
     return got
 
+def export_ckpt_drive(cell, seed, local_path):
+    """Upload ckpt to Drive placeholder r012_ckpt_<cell>_seed<seed>.pt, download back, sha."""
+    import os, hashlib
+    sa="/content/sa.json"
+    if not os.path.exists(sa):
+        raise RuntimeError("no SA on VM")
+    from pydrive2.auth import GoogleAuth
+    from pydrive2.drive import GoogleDrive
+    from oauth2client.service_account import ServiceAccountCredentials
+    creds=ServiceAccountCredentials.from_json_keyfile_name(sa,["https://www.googleapis.com/auth/drive"])
+    ga=GoogleAuth(); ga.credentials=creds; d=GoogleDrive(ga)
+    def find(n,par=None):
+        q=f"title='{n}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        if par: q=f"title='{n}' and '{par}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        l=d.ListFile({"q":q}).GetList(); return l[0]["id"] if l else None
+    ex=find("exchange",find("copeland-erdos-nets_drive",find("agent-rules-tree-control")))
+    name=f"r012_ckpt_{cell}_seed{seed}.pt"
+    l=d.ListFile({"q":f"title='{name}' and '{ex}' in parents and trashed=false"}).GetList()
+    if not l:
+        raise RuntimeError(f"no placeholder {name}")
+    gf=d.CreateFile({"id":l[0]["id"]}); gf.SetContentFile(str(local_path)); gf.Upload()
+    back=f"/content/_verify_{name}"; gf2=d.CreateFile({"id":l[0]["id"]}); gf2.GetContentFile(back)
+    h=hashlib.sha256()
+    with open(back,"rb") as f:
+        for c in iter(lambda:f.read(1<<20),b""): h.update(c)
+    return f"gdrive:exchange/{name}", h.hexdigest()
+
+
 def sha_file(p: Path) -> str:
     h=hashlib.sha256()
     with open(p,"rb") as f:
@@ -156,6 +184,13 @@ def main():
     wcsv(out/"attention_parity.csv",attnrows); wcsv(out/"unchanged_parameter_hashes.csv",unch)
     wcsv(out/"batch_order_hashes.csv",batch_order_records(perms,seed=seed,batch_size=bs,drop_last=tdrop))
     print(f"[r012] seed {seed} PARITY PASS; training 4 cells",flush=True)
+    from copeland_erdos_nets.r010_protocol import hash_int_sequence
+    # per-epoch usable-order (identical across cells by construction; recorded per cell to PROVE it)
+    per_epoch_order=[]
+    for order in perms:
+        usable=order[:(len(order)//bs)*bs] if tdrop else order
+        per_epoch_order.append(usable)
+    epoch_batch_rows=[]  # cell,epoch,hash
     # train
     crit=nn.CrossEntropyLoss(); metrics=[]; ckman=[]
     for cell in R012_CELLS:
@@ -163,7 +198,8 @@ def main():
         opt=torch.optim.AdamW(m.parameters(),lr=float(cfg["training"]["lr"]),weight_decay=float(cfg["training"]["weight_decay"]))
         bv=math.inf; be=0; lv=math.inf; bp=out/"checkpoints"/f"{cell}_seed{seed}_best.pt"
         for ep,order in enumerate(perms,1):
-            us=order[:(len(order)//bs)*bs] if tdrop else order
+            us=per_epoch_order[ep-1]
+            epoch_batch_rows.append({"cell":cell,"epoch":ep,"batch_order_hash":hash_int_sequence(us)})
             ld=DataLoader(splits["train"],batch_size=bs,sampler=conf.EpochPermutationSampler(us),drop_last=False)
             m.train(); run=0.0; n=0
             for x,y in ld:
@@ -175,13 +211,37 @@ def main():
             if lv<bv: bv=lv; be=ep; torch.save({"model":m.state_dict(),"epoch":ep,"val_loss":lv},bp)
         ck=torch.load(bp,map_location=device,weights_only=False); m.load_state_dict(ck["model"])
         tl=conf.evaluate(m,test,device,crit)
-        cksha=sha_file(bp)
+        cksha=sha_file(bp); local_size=bp.stat().st_size
+        # DURABLE export: SA upload to Drive placeholder, download back, verify sha
+        durable_uri=""; persistent_sha=""; persistent_verified=False
+        try:
+            durable_uri,persistent_sha=export_ckpt_drive(cell,seed,bp)
+            persistent_verified=(persistent_sha==cksha)
+        except Exception as e:
+            print(f"[r012] durable export failed {cell} {type(e).__name__}",flush=True)
+        if not persistent_verified:
+            (out/"SEED_STATUS.txt").write_text(f"NONCANONICAL_DURABLE_FAILURE {cell}\n")
+            raise SystemExit(f"durable checkpoint verify FAILED {cell}")
         ckman.append({"cell":cell,"seed":seed,"selected_epoch":be,
                       "selected_val_metric":"val_ppl","selected_val_value":round(math.exp(min(bv,20)),6),
-                      "durable_path":str(bp),"size_bytes":bp.stat().st_size,"sha256":cksha})
+                      "local_path":str(bp),"local_sha256":cksha,
+                      "durable_uri":durable_uri,"persistent_sha256":persistent_sha,
+                      "persistent_verified":str(persistent_verified).lower(),"size_bytes":local_size})
         metrics.append({"cell":cell,"seed":seed,"best_epoch":be,"best_val_ppl":math.exp(min(bv,20)),
                         "final_val_ppl":math.exp(min(lv,20)),"test_ppl":math.exp(min(tl,20))})
         wcsv(out/"per_seed.csv",metrics); wcsv(out/"checkpoint_manifest.csv",ckman)
+    wcsv(out/"epoch_batch_hashes.csv",epoch_batch_rows)
+    # batch-order parity gate: equal across all 4 cells for every epoch
+    from collections import defaultdict as _dd
+    bg=_dd(set)
+    for r in epoch_batch_rows: bg[int(r["epoch"])].add(r["batch_order_hash"])
+    batch_gate=all(len(v)==1 for v in bg.values()) and len(bg)==epochs
+    # update parity_summary with the real batch gate (replace existence gate)
+    par=list(csv.DictReader((out/"parity_summary.csv").open()))
+    par=[p for p in par if p["gate"]!="batch_order_parity_four_cells"]
+    par.append({"seed":seed,"gate":"batch_order_parity_all_epochs_4cells","pass":str(bool(batch_gate)).lower()})
+    wcsv(out/"parity_summary.csv",par)
+    if not batch_gate: raise SystemExit("batch-order per-epoch parity FAILED")
     dump_json(out/"resolved_config.json",cfg); dump_json(out/"dataset_manifest.json",dm)
     (out/"SEED_STATUS.txt").write_text(f"CANONICAL seed={seed} cells=4\n")
     (out/"DURABLE_MARKER.txt").write_text(f"R012_SEED{seed}_COMPLETE\n")
