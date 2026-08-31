@@ -1,9 +1,44 @@
 {
-  "experiment": {"name":"R012_scale_redraw_smoke","mode":"r012_smoke","seed":1047},
-  "data": {"dataset":"Salesforce/wikitext","config_name":"wikitext-2-raw-v1","tokenizer":"gpt2",
-           "batch_size":32,"seq_len":128,"train_drop_last":true,"val_drop_last":true,"test_drop_last":false},
-  "model": {"d_model":128,"n_heads":4,"d_ff":512,"n_layers":2},
-  "training": {"epochs":1,"lr":5e-4,"weight_decay":0.01,"device":"auto"},
-  "runtime_freeze": {"gpu":"Tesla T4","python":"3.13.15","torch":"2.11.0+cu128","cuda":"12.8",
-                     "numpy":"2.1.3","datasets":"4.0.0","transformers":"5.15.1","driver":"580.82.07"}
+  "experiment": {
+    "name": "R012_scale_redraw_smoke",
+    "mode": "r012_smoke",
+    "seed": 1047
+  },
+  "data": {
+    "dataset": "Salesforce/wikitext",
+    "config_name": "wikitext-2-raw-v1",
+    "tokenizer": "gpt2",
+    "batch_size": 32,
+    "seq_len": 128,
+    "train_drop_last": true,
+    "val_drop_last": true,
+    "test_drop_last": false
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2
+  },
+  "training": {
+    "epochs": 1,
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "device": "auto"
+  },
+  "runtime_freeze": {
+    "gpu": "Tesla T4",
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "numpy": "2.1.3",
+    "datasets": "4.0.0",
+    "transformers": "5.15.1",
+    "driver": "580.82.07"
+  },
+  "rng_policy": {
+    "seed_model_offset": 0,
+    "seed_shuffle_offset": 20011,
+    "seed_embedding_redraw_offset": 30013
+  }
 }

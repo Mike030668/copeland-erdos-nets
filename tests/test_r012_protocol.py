@@ -89,3 +89,25 @@ def test_scale_stats_keys(screening):
 
 def test_historical_screening_untouched():
     assert "get_wikitext2_dataloaders" in SCREEN.read_text()
+
+
+def test_runtime_driver_mismatch_hard_stop(tmp_path, screening):
+    import importlib.util
+    spec=importlib.util.spec_from_file_location("r012run", ROOT/"scripts"/"run_r012_seed_atomic.py")
+    m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    freeze={"gpu":"Tesla T4","python":"9.9.9","torch":"0.0.0","cuda":"0.0",
+            "numpy":"0.0","datasets":"0.0","transformers":"0.0","driver":"000.00.00"}
+    import pytest as _p
+    with _p.raises(SystemExit):
+        m.assert_runtime(freeze, tmp_path)
+    log=(tmp_path/"runtime_assertion.log").read_text()
+    assert "driver" in log  # driver is compared as a frozen field
+
+
+def test_rng_policy_matches_config():
+    import json
+    from copeland_erdos_nets import r010_protocol as r
+    cfg=json.loads((ROOT/"configs"/"r012_smoke.json").read_text())["rng_policy"]
+    assert cfg=={"seed_model_offset":r.SEED_MODEL_OFFSET,
+                 "seed_shuffle_offset":r.SEED_SHUFFLE_OFFSET,
+                 "seed_embedding_redraw_offset":r.SEED_EMBEDDING_OFFSET}

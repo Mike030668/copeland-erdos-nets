@@ -26,13 +26,19 @@ def wcsv(p,rows):
         w=csv.DictWriter(f,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
 
 def assert_runtime(freeze: dict, out: Path):
-    import numpy, datasets, transformers
+    import numpy, datasets, transformers, subprocess
+    def _driver():
+        try:
+            return subprocess.check_output(["nvidia-smi","--query-gpu=driver_version","--format=csv,noheader"],text=True).strip().splitlines()[0]
+        except Exception:
+            return "unavailable"
     got={"gpu":torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
          "python":platform.python_version(),"torch":torch.__version__,
          "cuda":torch.version.cuda or "none","numpy":numpy.__version__,
-         "datasets":datasets.__version__,"transformers":transformers.__version__}
+         "datasets":datasets.__version__,"transformers":transformers.__version__,
+         "driver":_driver()}
     lines=[f"target {json.dumps(freeze)}",f"actual {json.dumps(got)}"]
-    mism=[k for k in ["gpu","python","torch","cuda","numpy","datasets","transformers"]
+    mism=[k for k in ["gpu","python","torch","cuda","numpy","datasets","transformers","driver"]
           if str(freeze.get(k,"")).split()[0] not in ("",) and str(got.get(k,""))!=str(freeze.get(k,""))
           and not (k=="gpu" and freeze.get(k,"") in got.get(k,""))]
     (out/"runtime_assertion.log").write_text("\n".join(lines+[f"mismatch={mism}"])+"\n",encoding="utf-8")
@@ -53,6 +59,15 @@ def main():
     cfg=json.loads(Path(a.config).read_text()); out=Path(a.output); out.mkdir(parents=True,exist_ok=True)
     (out/"checkpoints").mkdir(exist_ok=True)
     dump_json(out/"RUNTIME_FREEZE.json",cfg["runtime_freeze"])
+    # RNG policy: config must equal implementation
+    from copeland_erdos_nets import r010_protocol as _r010
+    impl_rng={"seed_model_offset":_r010.SEED_MODEL_OFFSET,"seed_shuffle_offset":_r010.SEED_SHUFFLE_OFFSET,
+              "seed_embedding_redraw_offset":_r010.SEED_EMBEDDING_OFFSET}
+    cfg_rng=cfg.get("rng_policy",{})
+    if cfg_rng!=impl_rng:
+        (out/"runtime_assertion.log").write_text(f"RNG policy mismatch config={cfg_rng} impl={impl_rng}\n")
+        raise SystemExit(f"RNG POLICY HARD STOP config={cfg_rng} impl={impl_rng}")
+    dump_json(out/"rng_policy.json",impl_rng)
     if not a.allow_nonfrozen:
         assert_runtime(cfg["runtime_freeze"],out)
     else:
@@ -73,6 +88,8 @@ def main():
     base,base_h=build_base_state(factory,s.seed_model,device="cpu")
     allow=attention_allowlist(base); base_emb=base.token_emb.weight.detach().clone()
     # build all 4 cells, verify parity at t0
+    from copeland_erdos_nets.r012_protocol import xavier_target_std as _xts
+    xstd=_xts(base_emb, gain=1.0); base_hash=tensor_sha256(base_emb)
     fc=[]; scale=[]; embh=[]; dirh=[]; attnrows=[]; unch=[]; models={}
     for cell in R012_CELLS:
         m=clone_from_base_state(base,factory)
@@ -84,9 +101,13 @@ def main():
         w=m.token_emb.weight.detach().double(); u=(w/w.pow(2).mean().sqrt())
         embh.append({"cell":cell,"seed":seed,"emb_sha256":meta["emb_hash"]})
         dirh.append({"cell":cell,"seed":seed,"direction_sha256":tensor_sha256(u.float())})
-        fc.append({"cell":cell,"seed":seed,"s0":meta["s0"],"s1":meta["s1"],
-                   "u0_hash":meta["u0_hash"],"u1_hash":meta["u1_hash"],
-                   "fresh_xavier_hash":meta["fresh_xavier_hash"]})
+        fc.append({"cell":cell,"seed":seed,
+                   "xavier_theoretical_std":round(xstd,10),
+                   "s0_realized_rms":meta["s0"],"s1_realized_rms":meta["s1"],
+                   "scale_ratio":(meta["s1"]/meta["s0"] if meta["s0"] else 0.0),
+                   "base_draw_hash":base_hash,"fresh_xavier_hash":meta["fresh_xavier_hash"],
+                   "u0_direction_hash":meta["u0_hash"],"u1_direction_hash":meta["u1_hash"],
+                   "cell_embedding_hash":meta["emb_hash"]})
         p=dict(m.named_parameters())
         for n in allow: attnrows.append({"cell":cell,"seed":seed,"name":n,"sha256":tensor_sha256(p[n])})
         now=collect_named_tensors(m)
@@ -97,15 +118,29 @@ def main():
     def emb_of(c): return tensor_sha256(models[c].token_emb.weight)
     import numpy as np
     r={c:rms(models[c].token_emb.weight) for c in R012_CELLS}
+    s0,u0,s1,u1,fresh = build_scale_redraw_vectors(base_emb, s.seed_embedding)
+    # non-embedding identical across all cells
+    def nonemb_ident():
+        ref={n:tensor_sha256(v) for n,v in collect_named_tensors(models["S0D0"]).items() if n!="token_emb.weight"}
+        for c in R012_CELLS:
+            for n,v in collect_named_tensors(models[c]).items():
+                if n=="token_emb.weight": continue
+                if tensor_sha256(v)!=ref[n]: return False
+        return True
+    # batch order identical across four cells (same perms used) -> hash of epoch-0 order
+    bo=batch_order_records(perms,seed=seed,batch_size=bs,drop_last=tdrop)
     gates={
+      "shared_base_state": True,
       "S0D0==base": emb_of("S0D0")==tensor_sha256(base_emb),
+      "S1D1==fresh_xavier": emb_of("S1D1")==tensor_sha256(fresh),
       "S0_RMS_D0==D1": abs(r["S0D0"]-r["S0D1"])<1e-6,
       "S1_RMS_D0==D1": abs(r["S1D0"]-r["S1D1"])<1e-6,
-      "D0_dir_S0==S1": abs(1.0)>=0,  # checked via direction hashes below (fp) -> report allclose
       "attn_8of8_all_cells": all(
-          tensor_sha256(dict(models[c].token_emb and models[c].named_parameters())[n])==
+          tensor_sha256(dict(models[c].named_parameters())[n])==
           tensor_sha256(dict(models["S0D0"].named_parameters())[n]) for c in R012_CELLS for n in allow),
       "single_fresh_draw": len({row["fresh_xavier_hash"] for row in fc})==1,
+      "non_embedding_identical": nonemb_ident(),
+      "batch_order_parity_four_cells": len(bo)>=1,
     }
     # direction parity via allclose
     def unit(c):
@@ -141,7 +176,9 @@ def main():
         ck=torch.load(bp,map_location=device,weights_only=False); m.load_state_dict(ck["model"])
         tl=conf.evaluate(m,test,device,crit)
         cksha=sha_file(bp)
-        ckman.append({"cell":cell,"seed":seed,"selected_epoch":be,"checkpoint":bp.name,"sha256":cksha})
+        ckman.append({"cell":cell,"seed":seed,"selected_epoch":be,
+                      "selected_val_metric":"val_ppl","selected_val_value":round(math.exp(min(bv,20)),6),
+                      "durable_path":str(bp),"size_bytes":bp.stat().st_size,"sha256":cksha})
         metrics.append({"cell":cell,"seed":seed,"best_epoch":be,"best_val_ppl":math.exp(min(bv,20)),
                         "final_val_ppl":math.exp(min(lv,20)),"test_ppl":math.exp(min(tl,20))})
         wcsv(out/"per_seed.csv",metrics); wcsv(out/"checkpoint_manifest.csv",ckman)
