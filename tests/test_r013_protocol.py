@@ -113,3 +113,24 @@ def test_p2_batch_parity_positive_and_negative():
     bad=[dict(r) for r in ok]
     bad[0]["batch_order_hash"]="MUTATED"
     assert not all_epoch_batch_parity(bad, len(DOSES))
+
+
+def test_p2_pregate_before_train_dose_in_source():
+    """Static ordering proof: pre-training batch HARD GATE precedes first scientific train_dose."""
+    src=(ROOT/"scripts"/"run_r013_seed_atomic.py").read_text()
+    i_gate=src.index("PRE-OPTIMIZATION HARD GATE")
+    # first scientific training is the _microrun/train_dose after the gate; ensure gate index < training-loop index
+    i_microrun=src.index("def _microrun")
+    i_full_loop=src.rindex("for d in DOSES:")  # full training loop near the end
+    assert i_gate < i_microrun < i_full_loop
+    # and the gate raises SystemExit on failure BEFORE training
+    assert "PRE-TRAINING HARD STOP" in src
+
+
+def test_p2_pregate_mutation_hard_stops(tmp_path):
+    """Mutated one-dose/epoch hash => all_epoch_batch_parity False (would HARD STOP pre-training)."""
+    from copeland_erdos_nets.r013_protocol import all_epoch_batch_parity, DOSES
+    good=[{"dose":d,"epoch":ep,"batch_order_hash":f"H{ep}"} for ep in (1,2) for d in DOSES]
+    assert all_epoch_batch_parity(good, len(DOSES))
+    bad=[dict(r) for r in good]; bad[3]["batch_order_hash"]="X"
+    assert not all_epoch_batch_parity(bad, len(DOSES))

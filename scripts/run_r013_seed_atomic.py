@@ -233,7 +233,13 @@ def main():
     wcsv(out/"base_direction_construction.csv",bdir); wcsv(out/"attention_parity.csv",attnrows)
     wcsv(out/"unchanged_parameter_hashes.csv",unch)
     wcsv(out/"epoch_batch_hashes.csv",[{"dose":d,"epoch":ep+1,"batch_order_hash":hash_int_sequence(perms[ep][:(len(perms[ep])//bs)*bs] if tdrop else perms[ep])} for d in DOSES for ep in range(epochs)])
-    print(f"[r013] seed {seed} PARITY PASS; training {len(DOSES)} doses",flush=True)
+    # PRE-OPTIMIZATION HARD GATE (DS binding): batch parity BEFORE any scientific train_dose
+    from copeland_erdos_nets.r013_protocol import all_epoch_batch_parity as _batp
+    _ebh=list(csv.DictReader((out/"epoch_batch_hashes.csv").open()))
+    if not _batp(_ebh, len(DOSES)):
+        (out/"SEED_STATUS.txt").write_text("NONCANONICAL_BATCH_PARITY_FAILURE (pre-training)\n")
+        raise SystemExit("PRE-TRAINING HARD STOP: all_epoch_batch_parity FAIL")
+    print(f"[r013] seed {seed} PARITY PASS (incl pre-training batch gate); training {len(DOSES)} doses",flush=True)
 
     # (3) FULL telemetry ON/OFF parity: same init, deterministic micro-run; compare
     # loss trajectory, final state hash, batch-order hashes, selected ckpt epoch + SHA.
