@@ -241,9 +241,10 @@ def main():
         r=train_dose(m,f"MICRO_{'ON' if tele else 'OFF'}",splits,perms[:1],bs,tdrop,device,cfg,tele,out,[],seed)
         state_hash=tensor_sha256(torch.cat([v.detach().float().flatten().cpu() for _,v in sorted(m.state_dict().items())]))
         bo=hash_int_sequence(perms[0][:(len(perms[0])//bs)*bs] if tdrop else perms[0])
-        cksha=sha_file(r["ckpt"])
+        ck=torch.load(r["ckpt"],map_location="cpu",weights_only=False)["model"]
+        ckpt_state_hash=tensor_sha256(torch.cat([v.detach().float().flatten() for _,v in sorted(ck.items())]))
         return {"loss_traj":round(r["final_val_loss"],12),"state_hash":state_hash,"batch_hash":bo,
-                "ckpt_epoch":r["best_epoch"],"ckpt_sha":cksha}
+                "ckpt_epoch":r["best_epoch"],"ckpt_state_hash":ckpt_state_hash}
     A=_microrun(True); B=_microrun(False)
     checks={k:(A[k]==B[k]) for k in A}
     all_eq=all(checks.values())
