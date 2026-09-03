@@ -1,0 +1,57 @@
+{
+  "experiment": {
+    "name": "R013_scale_response_canonical",
+    "mode": "r013_canonical",
+    "doses": [
+      "D_below",
+      "D_xavier",
+      "D_mid1",
+      "D_mid2",
+      "D_ctor"
+    ]
+  },
+  "data": {
+    "dataset": "Salesforce/wikitext",
+    "config_name": "wikitext-2-raw-v1",
+    "tokenizer": "gpt2",
+    "batch_size": 32,
+    "seq_len": 128,
+    "train_drop_last": true,
+    "val_drop_last": true,
+    "test_drop_last": false
+  },
+  "model": {
+    "d_model": 128,
+    "n_heads": 4,
+    "d_ff": 512,
+    "n_layers": 2
+  },
+  "training": {
+    "epochs": 15,
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "device": "auto"
+  },
+  "telemetry": {
+    "activation_rms": "OFF"
+  },
+  "runtime_freeze": {
+    "gpu": "Tesla T4",
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "numpy": "2.1.3",
+    "datasets": "4.0.0",
+    "transformers": "5.15.1",
+    "driver": "580.82.07"
+  },
+  "rng_policy": {
+    "seed_model_offset": 0,
+    "seed_shuffle_offset": 20011,
+    "seed_embedding_redraw_offset": 30013
+  },
+  "direction_tolerances": {
+    "cosine_min": 0.999999,
+    "normalized_max_abs_diff_max": 0.0001
+  }
+}
