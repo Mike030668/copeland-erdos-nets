@@ -83,10 +83,10 @@ def test_telemetry_rng_neutral(screening):
     m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
     f=_tiny(screening)(); 
     # random state snapshot
-    st0=torch.random.get_rng_state()
     import torch as T
-    x=T.randn(4,8); f.token_emb.weight.grad=T.randn_like(f.token_emb.weight)
+    f.token_emb.weight.grad=T.randn_like(f.token_emb.weight)
     wbefore=f.token_emb.weight.detach().clone()
+    st0=torch.random.get_rng_state()      # snapshot RIGHT BEFORE telemetry
     gl2,grm=m.embedding_grad_stats(f)
     st1=torch.random.get_rng_state()
     assert T.equal(st0,st1)              # no RNG consumed
