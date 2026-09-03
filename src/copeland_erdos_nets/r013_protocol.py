@@ -55,3 +55,12 @@ def apply_embedding_dose(model: nn.Module, dose: str, base_emb: torch.Tensor,
         "base_direction_hash": tensor_sha256(u.float()),
         "emb_hash": tensor_sha256(model.token_emb.weight),
     }
+
+
+def cosine_and_maxdiff(realized: torch.Tensor, base: torch.Tensor):
+    """Actual direction audit from realized tensors."""
+    a=realized.detach().double().flatten(); b=base.detach().double().flatten()
+    cos=float(torch.dot(a,b).item()/(a.norm().item()*b.norm().item()+1e-30))
+    an=a/(a.norm()+1e-30); bn=b/(b.norm()+1e-30)
+    mad=float((an-bn).abs().max().item())
+    return cos, mad

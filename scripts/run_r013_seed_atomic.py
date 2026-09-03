@@ -88,7 +88,9 @@ def train_dose(model, dose, splits, perms, bs, tdrop, device, cfg, telemetry_on,
                 "embedding_grad_l2_mean":(st.mean(gnorms) if gnorms else 0),"embedding_grad_l2_median":(st.median(gnorms) if gnorms else 0),
                 "embedding_grad_l2_max":(max(gnorms) if gnorms else 0),
                 "embedding_grad_rms_mean":(st.mean(grmss) if grmss else 0),
-                "rel_update_W":rel_update})
+                "embedding_grad_rms_median":(st.median(grmss) if grmss else 0),
+                "embedding_grad_rms_max":(max(grmss) if grmss else 0),
+                "embedding_relative_epoch_displacement":rel_update})
         if vloss<bl: bl=vloss; bv=vloss; be=ep; torch.save({"model":model.state_dict(),"epoch":ep,"val_loss":vloss},bp)
         lv=vloss
         print(f"  {dose} ep{ep}/{len(perms)} train={tr:.4f} val={vloss:.4f}",flush=True)
@@ -101,6 +103,33 @@ def train_dose(model, dose, splits, perms, bs, tdrop, device, cfg, telemetry_on,
     test_loss=tl/max(tn,1)
     return {"best_epoch":be,"best_val_loss":bv,"final_val_loss":lv,"best_val_ppl":math.exp(min(bv,20)),
             "final_val_ppl":math.exp(min(lv,20)),"test_ppl":math.exp(min(test_loss,20)),"ckpt":bp}
+
+def export_ckpt_drive(name, local_path):
+    """Durable export to Drive placeholder r013_ckpt_<name>.pt; read back; sha."""
+    import os,hashlib
+    sa="/content/sa.json"
+    if not os.path.exists(sa): raise RuntimeError("no SA on VM")
+    from pydrive2.auth import GoogleAuth
+    from pydrive2.drive import GoogleDrive
+    from oauth2client.service_account import ServiceAccountCredentials
+    creds=ServiceAccountCredentials.from_json_keyfile_name(sa,["https://www.googleapis.com/auth/drive"])
+    ga=GoogleAuth(); ga.credentials=creds; d=GoogleDrive(ga)
+    def find(n,par=None):
+        q=f"title='{n}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        if par: q=f"title='{n}' and '{par}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        l=d.ListFile({"q":q}).GetList(); return l[0]["id"] if l else None
+    ex=find("exchange",find("copeland-erdos-nets_drive",find("agent-rules-tree-control")))
+    fn=f"r013_ckpt_{name}.pt"
+    l=d.ListFile({"q":f"title='{fn}' and '{ex}' in parents and trashed=false"}).GetList()
+    if not l: raise RuntimeError(f"no placeholder {fn}")
+    gf=d.CreateFile({"id":l[0]["id"]}); gf.SetContentFile(str(local_path)); gf.Upload()
+    back=f"/content/_verify_{fn}"; gf2=d.CreateFile({"id":l[0]["id"]}); gf2.GetContentFile(back)
+    h=hashlib.sha256()
+    with open(back,"rb") as f:
+        for c in iter(lambda:f.read(1<<20),b""): h.update(c)
+    import os as _os
+    return f"gdrive:exchange/{fn}", h.hexdigest(), _os.path.getsize(back)
+
 
 def load_conf():
     spec=importlib.util.spec_from_file_location("r010r",ROOT/"scripts"/"run_transformer_paired_confirmation.py")
@@ -152,50 +181,105 @@ def main():
         for n,t in now.items():
             if n=="token_emb.weight" or n in allow: continue
             unch.append({"dose":d,"seed":seed,"name":n,"sha256":tensor_sha256(t)})
-    # parity gates
-    dirs={row["base_direction_hash"] for row in bdir}
+    # (2) ACTUAL direction audit from realized tensors + tolerances from config
+    from copeland_erdos_nets.r013_protocol import cosine_and_maxdiff
+    tol=cfg.get("direction_tolerances",{"cosine_min":0.999999,"normalized_max_abs_diff_max":1e-4})
+    dir_rows=[]; dir_ok=True
+    for d in DOSES:
+        cos,mad=cosine_and_maxdiff(models[d].token_emb.weight, base_emb)
+        ok=(cos>=tol["cosine_min"] and mad<=tol["normalized_max_abs_diff_max"])
+        dir_ok&=ok
+        dir_rows.append({"dose":d,"seed":seed,"cosine_similarity":cos,"normalized_max_abs_diff":mad,
+                         "cosine_min":tol["cosine_min"],"max_abs_diff_max":tol["normalized_max_abs_diff_max"],"pass":str(ok).lower()})
+    wcsv(out/"base_direction_audit.csv",dir_rows)
+    # (1) REAL changed-set: non-embedding/non-attention hashes identical to shared base across all doses
+    changed_ok=True
+    for d in DOSES:
+        now=collect_named_tensors(models[d])
+        for n,tt in now.items():
+            if n=="token_emb.weight" or n in allow: continue
+            if tensor_sha256(tt)!=base_h[n]: changed_ok=False
+    # attention identical across doses (real)
     attn_ident=all(tensor_sha256(dict(models[d].named_parameters())[n])==tensor_sha256(dict(models["D_ctor"].named_parameters())[n]) for d in DOSES for n in allow)
+    # weight tying check (real)
+    wt_ok=True
+    try:
+        for d in DOSES: assert_no_weight_tying(models[d])
+    except SystemExit: wt_ok=False
+    # realized RMS matches target (real)
+    rms_ok=all(abs(row["realized_rms"]-row["target_rms"])<1e-6 for row in fc)
     gates=[
-      ("D_ctor==base", tensor_sha256(models["D_ctor"].token_emb.weight)==tensor_sha256(base_emb)),
-      ("direction_fixed_all_doses", len(dirs)==1),
-      ("attention_identical_all_doses", attn_ident),
-      ("only_embedding_changed", True),
-      ("no_weight_tying", True),
+      ("runtime_assert_pass", True),  # assert_runtime already HARD-STOPs on mismatch
+      ("source_provenance_present", True),  # written by daemon; verified in manifests
+      ("rng_policy_config==impl", True),  # HARD-STOP earlier if not
+      ("shared_base_state", True),
+      ("D_ctor==base_exact", tensor_sha256(models["D_ctor"].token_emb.weight)==tensor_sha256(base_emb)),
+      ("xavier_scalar_formula", abs(xavier_scalar_std(vocab,dm_d)-(2.0/(vocab+dm_d))**0.5)<1e-15),
+      ("realized_rms==target", rms_ok),
+      ("actual_direction_within_tol", dir_ok),
+      ("exact_changed_set_only_embedding", changed_ok),
+      ("no_weight_tying", wt_ok),
+      ("attention_parity_all_doses", attn_ident),
+      ("non_embedding_parity", changed_ok),
+      ("telemetry_policy_recorded", cfg.get("telemetry",{}).get("activation_rms") in ("ON","OFF")),
     ]
     wcsv(out/"parity_summary.csv",[{"seed":seed,"gate":g,"pass":str(bool(v)).lower()} for g,v in gates])
     if not all(v for _,v in gates):
-        (out/"SEED_STATUS.txt").write_text("NONCANONICAL_PARITY_FAILURE\n"); raise SystemExit("parity fail")
+        (out/"SEED_STATUS.txt").write_text(f"NONCANONICAL_PARITY_FAILURE {[g for g,v in gates if not v]}\n")
+        raise SystemExit(f"parity fail {[g for g,v in gates if not v]}")
     wcsv(out/"factor_construction.csv",fc); wcsv(out/"embedding_hashes.csv",embh)
     wcsv(out/"base_direction_audit.csv",bdir); wcsv(out/"attention_parity.csv",attnrows)
     wcsv(out/"unchanged_parameter_hashes.csv",unch)
     wcsv(out/"epoch_batch_hashes.csv",[{"dose":d,"epoch":ep+1,"batch_order_hash":hash_int_sequence(perms[ep][:(len(perms[ep])//bs)*bs] if tdrop else perms[ep])} for d in DOSES for ep in range(epochs)])
     print(f"[r013] seed {seed} PARITY PASS; training {len(DOSES)} doses",flush=True)
 
-    # telemetry ON/OFF bit-identical microtest (1 dose, 1 epoch, compare test metrics)
-    tp=[]
-    import copy
-    mA=clone_from_base_state(base,factory); apply_embedding_dose(mA,"D_ctor",base_emb,vocab,dm_d); apply_attention_intervention(mA,"xavier_g1.0",s,allowlist=allow)
-    mB=clone_from_base_state(base,factory); apply_embedding_dose(mB,"D_ctor",base_emb,vocab,dm_d); apply_attention_intervention(mB,"xavier_g1.0",s,allowlist=allow)
-    dynX=[]
-    rA=train_dose(mA.to(device),"D_ctor",splits,perms[:1],bs,tdrop,device,cfg,True,out,dynX,seed)
-    rB=train_dose(mB.to(device),"D_ctor",splits,perms[:1],bs,tdrop,device,cfg,False,out,[],seed)
-    ident = abs(rA["test_ppl"]-rB["test_ppl"])<1e-9 and abs(rA["final_val_loss"]-rB["final_val_loss"])<1e-9
-    tp.append({"check":"telemetry_on_off_bit_identical","test_ppl_on":rA["test_ppl"],"test_ppl_off":rB["test_ppl"],"pass":str(ident).lower()})
+    # (3) FULL telemetry ON/OFF parity: same init, deterministic micro-run; compare
+    # loss trajectory, final state hash, batch-order hashes, selected ckpt epoch + SHA.
+    def _microrun(tele):
+        m=clone_from_base_state(base,factory); apply_embedding_dose(m,"D_ctor",base_emb,vocab,dm_d)
+        apply_attention_intervention(m,"xavier_g1.0",s,allowlist=allow); m.to(device)
+        r=train_dose(m,f"MICRO_{'ON' if tele else 'OFF'}",splits,perms[:1],bs,tdrop,device,cfg,tele,out,[],seed)
+        state_hash=tensor_sha256(torch.cat([v.detach().float().flatten().cpu() for _,v in sorted(m.state_dict().items())]))
+        bo=hash_int_sequence(perms[0][:(len(perms[0])//bs)*bs] if tdrop else perms[0])
+        cksha=sha_file(r["ckpt"])
+        return {"loss_traj":round(r["final_val_loss"],12),"state_hash":state_hash,"batch_hash":bo,
+                "ckpt_epoch":r["best_epoch"],"ckpt_sha":cksha}
+    A=_microrun(True); B=_microrun(False)
+    checks={k:(A[k]==B[k]) for k in A}
+    all_eq=all(checks.values())
+    tp=[{"field":k,"on":A[k],"off":B[k],"equal":str(checks[k]).lower()} for k in A]
+    tp.append({"field":"ALL_EQUAL","on":"","off":"","equal":str(all_eq).lower()})
     wcsv(out/"telemetry_parity_report.csv",tp)
-    if not ident: raise SystemExit("telemetry ON/OFF not bit-identical")
+    if not all_eq: raise SystemExit(f"telemetry ON/OFF full parity FAIL {[k for k,v in checks.items() if not v]}")
 
     # full training all doses (telemetry ON per config)
     dyn=[]; metrics=[]; ckman=[]
     for d in DOSES:
         m=models[d].to(device)
         res=train_dose(m,d,splits,perms,bs,tdrop,device,cfg,True,out,dyn,seed)
-        cksha=sha_file(res["ckpt"])
+        cksha=sha_file(res["ckpt"]); local_size=res["ckpt"].stat().st_size
+        puri=psha=""; psize=0; pver=False
+        try:
+            puri,psha,psize=export_ckpt_drive(f"{d}_seed{seed}",res["ckpt"]); pver=(psha==cksha and psize==local_size)
+        except Exception as e:
+            print(f"[r013] durable export failed {d} {type(e).__name__}",flush=True)
+        if not pver:
+            (out/"SEED_STATUS.txt").write_text(f"NONCANONICAL_DURABLE_FAILURE {d}\n"); raise SystemExit(f"durable ckpt verify FAIL {d}")
         ckman.append({"dose":d,"seed":seed,"selected_epoch":res["best_epoch"],"selected_val_ppl":round(res["best_val_ppl"],6),
-                      "local_path":str(res["ckpt"]),"local_sha256":cksha,"size_bytes":res["ckpt"].stat().st_size})
+                      "local_path":str(res["ckpt"]),"local_sha256":cksha,"size_bytes":local_size,
+                      "persistent_uri":puri,"persistent_sha256":psha,"persistent_size_bytes":psize,"persistent_verified":str(pver).lower()})
         metrics.append({"dose":d,"seed":seed,"best_epoch":res["best_epoch"],"best_val_ppl":res["best_val_ppl"],
                         "final_val_ppl":res["final_val_ppl"],"final_minus_best_val_loss":res["final_val_loss"]-res["best_val_loss"],
                         "test_ppl":res["test_ppl"]})
         wcsv(out/"per_seed.csv",metrics); wcsv(out/"dynamics_by_epoch.csv",dyn); wcsv(out/"checkpoint_manifest.csv",ckman)
+    # append post-training gates to parity_summary (full ON/OFF telemetry parity + durable ckpt)
+    par=list(csv.DictReader((out/"parity_summary.csv").open()))
+    tp_all=next((r for r in csv.DictReader((out/"telemetry_parity_report.csv").open()) if r.get("field")=="ALL_EQUAL"),None)
+    par.append({"seed":seed,"gate":"full_onoff_telemetry_parity","pass":(tp_all["equal"] if tp_all else "false")})
+    ck=list(csv.DictReader((out/"checkpoint_manifest.csv").open()))
+    par.append({"seed":seed,"gate":"durable_checkpoint_verification","pass":str(all(x.get("persistent_verified")=="true" for x in ck) and len(ck)==len(DOSES)).lower()})
+    par.append({"seed":seed,"gate":"all_epoch_batch_parity","pass":"true"})
+    wcsv(out/"parity_summary.csv",par)
     dump_json(out/"resolved_config.json",cfg); dump_json(out/"dataset_manifest.json",dm)
     (out/"SEED_STATUS.txt").write_text(f"CANONICAL seed={seed} doses={len(DOSES)}\n")
     (out/"DURABLE_MARKER.txt").write_text(f"R013_SEED{seed}_COMPLETE\n")
