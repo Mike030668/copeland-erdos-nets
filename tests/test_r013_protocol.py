@@ -92,3 +92,24 @@ def test_telemetry_rng_neutral(screening):
     assert T.equal(st0,st1)              # no RNG consumed
     assert T.equal(wbefore,f.token_emb.weight.detach())  # no mutation
     assert gl2>=0 and grm>=0
+
+
+def test_p1_direction_audit_valid():
+    from copeland_erdos_nets.r013_protocol import direction_audit_valid, DOSES
+    rows=[{"dose":d,"cosine_similarity":"1.0","normalized_max_abs_diff":"0.0","pass":"true"} for d in DOSES]
+    assert direction_audit_valid(rows, DOSES)
+    rows_missing=[{"dose":d,"pass":"true"} for d in DOSES]
+    assert not direction_audit_valid(rows_missing, DOSES)  # numeric cols absent
+
+
+def test_p2_batch_parity_positive_and_negative():
+    from copeland_erdos_nets.r013_protocol import all_epoch_batch_parity, DOSES
+    # positive: same hash across all doses per epoch, 2 epochs
+    ok=[]
+    for ep in (1,2):
+        for d in DOSES: ok.append({"dose":d,"epoch":ep,"batch_order_hash":f"H{ep}"})
+    assert all_epoch_batch_parity(ok, len(DOSES))
+    # negative: mutate one dose hash in epoch 1
+    bad=[dict(r) for r in ok]
+    bad[0]["batch_order_hash"]="MUTATED"
+    assert not all_epoch_batch_parity(bad, len(DOSES))

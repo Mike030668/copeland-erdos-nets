@@ -64,3 +64,23 @@ def cosine_and_maxdiff(realized: torch.Tensor, base: torch.Tensor):
     an=a/(a.norm()+1e-30); bn=b/(b.norm()+1e-30)
     mad=float((an-bn).abs().max().item())
     return cos, mad
+
+
+def all_epoch_batch_parity(epoch_batch_rows, n_doses):
+    """Per epoch exactly one unique batch_order_hash across all doses."""
+    from collections import defaultdict
+    by=defaultdict(set); cnt=defaultdict(int)
+    for r in epoch_batch_rows:
+        by[r["epoch"]].add(r["batch_order_hash"]); cnt[r["epoch"]]+=1
+    if not by: return False
+    return all(len(v)==1 for v in by.values()) and all(cnt[e]==n_doses for e in by)
+
+
+def direction_audit_valid(dir_rows, doses):
+    """5 doses present, numeric cols present, all pass."""
+    if {r["dose"] for r in dir_rows}!=set(doses): return False
+    for r in dir_rows:
+        if "cosine_similarity" not in r or "normalized_max_abs_diff" not in r: return False
+        float(r["cosine_similarity"]); float(r["normalized_max_abs_diff"])
+        if r.get("pass")!="true": return False
+    return True

@@ -189,7 +189,9 @@ def main():
         cos,mad=cosine_and_maxdiff(models[d].token_emb.weight, base_emb)
         ok=(cos>=tol["cosine_min"] and mad<=tol["normalized_max_abs_diff_max"])
         dir_ok&=ok
+        bdh=next((r["base_direction_hash"] for r in bdir if r["dose"]==d),"")
         dir_rows.append({"dose":d,"seed":seed,"cosine_similarity":cos,"normalized_max_abs_diff":mad,
+                         "base_direction_hash":bdh,
                          "cosine_min":tol["cosine_min"],"max_abs_diff_max":tol["normalized_max_abs_diff_max"],"pass":str(ok).lower()})
     wcsv(out/"base_direction_audit.csv",dir_rows)
     # (1) REAL changed-set: non-embedding/non-attention hashes identical to shared base across all doses
@@ -228,7 +230,7 @@ def main():
         (out/"SEED_STATUS.txt").write_text(f"NONCANONICAL_PARITY_FAILURE {[g for g,v in gates if not v]}\n")
         raise SystemExit(f"parity fail {[g for g,v in gates if not v]}")
     wcsv(out/"factor_construction.csv",fc); wcsv(out/"embedding_hashes.csv",embh)
-    wcsv(out/"base_direction_audit.csv",bdir); wcsv(out/"attention_parity.csv",attnrows)
+    wcsv(out/"base_direction_construction.csv",bdir); wcsv(out/"attention_parity.csv",attnrows)
     wcsv(out/"unchanged_parameter_hashes.csv",unch)
     wcsv(out/"epoch_batch_hashes.csv",[{"dose":d,"epoch":ep+1,"batch_order_hash":hash_int_sequence(perms[ep][:(len(perms[ep])//bs)*bs] if tdrop else perms[ep])} for d in DOSES for ep in range(epochs)])
     print(f"[r013] seed {seed} PARITY PASS; training {len(DOSES)} doses",flush=True)
@@ -279,7 +281,13 @@ def main():
     par.append({"seed":seed,"gate":"full_onoff_telemetry_parity","pass":(tp_all["equal"] if tp_all else "false")})
     ck=list(csv.DictReader((out/"checkpoint_manifest.csv").open()))
     par.append({"seed":seed,"gate":"durable_checkpoint_verification","pass":str(all(x.get("persistent_verified")=="true" for x in ck) and len(ck)==len(DOSES)).lower()})
-    par.append({"seed":seed,"gate":"all_epoch_batch_parity","pass":"true"})
+    from copeland_erdos_nets.r013_protocol import all_epoch_batch_parity
+    ebh=list(csv.DictReader((out/"epoch_batch_hashes.csv").open()))
+    batch_ok=all_epoch_batch_parity(ebh, len(DOSES))
+    par.append({"seed":seed,"gate":"all_epoch_batch_parity","pass":str(bool(batch_ok)).lower()})
+    if not batch_ok:
+        (out/"SEED_STATUS.txt").write_text("NONCANONICAL_BATCH_PARITY_FAILURE\n")
+        wcsv(out/"parity_summary.csv",par); raise SystemExit("all_epoch_batch_parity FAIL")
     wcsv(out/"parity_summary.csv",par)
     dump_json(out/"resolved_config.json",cfg); dump_json(out/"dataset_manifest.json",dm)
     (out/"SEED_STATUS.txt").write_text(f"CANONICAL seed={seed} doses={len(DOSES)}\n")
