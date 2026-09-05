@@ -26,6 +26,7 @@ runs/
 .vscode/
 *.swp
 .gigacode
+copeland-erdos-nets.code-workspace
 
 # Temp
 .tmp/
