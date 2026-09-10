@@ -118,7 +118,12 @@ def export_ckpt_drive(name, local_path):
         q=f"title='{n}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
         if par: q=f"title='{n}' and '{par}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
         l=d.ListFile({"q":q}).GetList(); return l[0]["id"] if l else None
-    ex=find("exchange",find("copeland-erdos-nets_drive",find("agent-rules-tree-control")))
+    # 2026-09-10 fix: Drive reorganized to root/research/copeland-erdos-nets_drive
+    # (used to be root/copeland-erdos-nets_drive directly). Without the "research"
+    # hop this silently resolved a DIFFERENT project's "exchange" folder via the
+    # global by-title fallback in find(), causing every export here to raise
+    # "no placeholder" even though the real placeholder exists.
+    ex=find("exchange",find("copeland-erdos-nets_drive",find("research",find("agent-rules-tree-control"))))
     fn=f"r013_ckpt_{name}.pt"
     l=d.ListFile({"q":f"title='{fn}' and '{ex}' in parents and trashed=false"}).GetList()
     if not l: raise RuntimeError(f"no placeholder {fn}")
