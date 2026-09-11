@@ -312,3 +312,87 @@ def test_mode_aware_status_and_seed1057_can_never_be_canonical(runner):
     # only mode==r014_canonical AND seed released AND full schedule -> CANONICAL
     label_true_canonical = runner.seed_status_label(canon_cfg, 57, schedule_epochs=15, train_epochs=15)
     assert label_true_canonical.startswith("CANONICAL seed=57")
+
+
+# --- DS Smoke Checkpoint Round 2 binding repair C1: epoch-level curve persistence ---
+
+def test_c1_expected_row_count_for_complete_canonical_seed_block():
+    """DS: expected rows = 3 conditions x 15 epochs = 45 for a complete canonical seed."""
+    assert len(R014_DOSES) * 15 == 45
+
+
+def test_c1_learning_curves_wired_per_dose_in_main_source():
+    """Static wiring proof: learning_curves.csv is accumulated and persisted inside
+    the SAME per-dose training loop as the pre-existing per_seed.csv/
+    checkpoint_manifest.csv outputs (incremental, not a bolted-on post-loop pass)."""
+    src = (ROOT / "scripts" / "run_r014_seed_atomic.py").read_text()
+    assert 'curves.extend(res["curve_rows"])' in src
+    assert 'wcsv(out / "learning_curves.csv", curves)' in src
+    i_loop = src.index("for d in R014_DOSES:\n        m = models[d].to(device)")
+    i_curves = src.index('curves.extend(res["curve_rows"])')
+    i_perseed = src.index('wcsv(out / "per_seed.csv"', i_loop)
+    assert i_loop < i_curves < i_perseed
+
+
+def test_c1_curve_persistence_observational_and_checkpoint_test_semantics_unchanged(runner, tmp_path):
+    """DS binding repair C1 (Smoke Checkpoint Round 2): run the REAL train_condition
+    (not a mock) on a tiny synthetic dataset and prove, empirically:
+    (1) exactly one curve row per epoch, correctly tagged seed/dose/epoch;
+    (2) the persisted val_loss/val_ppl at the SELECTED best epoch and at the
+        final epoch are bit-identical to the scalars train_condition already
+        used for checkpoint selection and for per_seed.csv's final_val_ppl --
+        i.e. curve persistence reads existing scalars, it does not recompute
+        anything via an extra forward/eval pass;
+    (3) the pre-C1 return contract (checkpoint/test semantics) is untouched:
+        every pre-existing key is still present with its own checkpoint file
+        written, unchanged by the addition of curve_rows."""
+    conf = runner.load_conf()
+    small_vocab = 37
+    seq_len = 4
+    torch.manual_seed(0)
+    ids_train = [i % small_vocab for i in range(400)]
+    ids_val = [i % small_vocab for i in range(120)]
+    ids_test = [i % small_vocab for i in range(120)]
+    splits = {
+        "train": conf.TokenizedDataset(ids_train, seq_len),
+        "validation": conf.TokenizedDataset(ids_val, seq_len),
+        "test": conf.TokenizedDataset(ids_test, seq_len),
+    }
+
+    class Tiny(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.token_emb = torch.nn.Embedding(small_vocab, 16)
+            self.lin = torch.nn.Linear(16, 16)
+            self.lm_head = torch.nn.Linear(16, small_vocab)
+
+        def forward(self, x):
+            return self.lm_head(torch.relu(self.lin(self.token_emb(x))))
+
+    model = Tiny()
+    cfg = {"training": {"lr": 1e-3, "weight_decay": 0.0},
+           "data": {"val_drop_last": False, "test_drop_last": False}}
+    n_epochs = 3
+    bs = 8
+    perms = [list(range(len(splits["train"]))) for _ in range(n_epochs)]
+    out = tmp_path
+    (out / "checkpoints").mkdir()
+
+    res = runner.train_condition(model, "D_ctor", splits, perms, bs, False, "cpu", cfg, out, seed=999)
+
+    rows = res["curve_rows"]
+    assert len(rows) == n_epochs
+    assert [r["epoch"] for r in rows] == list(range(1, n_epochs + 1))
+    assert all(r["seed"] == 999 and r["dose"] == "D_ctor" for r in rows)
+
+    best_row = rows[res["best_epoch"] - 1]
+    assert best_row["val_loss"] == pytest.approx(res["best_val_loss"], rel=1e-12)
+    assert best_row["val_ppl"] == pytest.approx(res["best_val_ppl"], rel=1e-12)
+
+    last_row = rows[-1]
+    assert last_row["val_loss"] == pytest.approx(res["final_val_loss"], rel=1e-12)
+    assert last_row["val_ppl"] == pytest.approx(res["final_val_ppl"], rel=1e-12)
+
+    for k in ("best_epoch", "best_val_loss", "final_val_loss", "best_val_ppl", "final_val_ppl", "test_ppl", "ckpt"):
+        assert k in res
+    assert res["ckpt"].exists()

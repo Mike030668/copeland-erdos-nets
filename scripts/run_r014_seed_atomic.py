@@ -117,6 +117,13 @@ def train_condition(model, cond, splits, perms, bs, tdrop, device, cfg, out, see
     conf = load_conf()
     bv = math.inf; be = 0; lv = math.inf; bl = math.inf
     bp = out / "checkpoints" / f"{cond}_seed{seed}_best.pt"
+    # DS binding repair C1 (Smoke Checkpoint Round 2): persist the epoch-level
+    # train/val curve required by Design Validation Section 11. Observational
+    # only -- tr/vloss/vppl below are the SAME scalars already computed for
+    # checkpoint selection and the per-epoch print; no additional forward
+    # pass, no additional eval, no RNG consumption, no change to which epoch
+    # is selected as best or to the held-out test evaluation below.
+    curve_rows = []
     for ep, order in enumerate(perms, 1):
         us = order[:(len(order) // bs) * bs] if tdrop else order
         ld = DataLoader(splits["train"], batch_size=bs, sampler=conf.EpochPermutationSampler(us), drop_last=False)
@@ -136,6 +143,7 @@ def train_condition(model, cond, splits, perms, bs, tdrop, device, cfg, out, see
             bl = vloss; bv = vloss; be = ep
             torch.save({"model": model.state_dict(), "epoch": ep, "val_loss": vloss}, bp)
         lv = vloss
+        curve_rows.append({"seed": seed, "dose": cond, "epoch": ep, "train_loss": tr, "val_loss": vloss, "val_ppl": vppl})
         print(f"  {cond} ep{ep}/{len(perms)} train={tr:.4f} val={vloss:.4f}", flush=True)
     ck = torch.load(bp, map_location=device, weights_only=False); model.load_state_dict(ck["model"])
     tl = 0.0; tn = 0; model.eval()
@@ -145,7 +153,8 @@ def train_condition(model, cond, splits, perms, bs, tdrop, device, cfg, out, see
             tl += float(crit(lo.view(-1, lo.size(-1)), y.view(-1)).item()) * x.size(0); tn += x.size(0)
     test_loss = tl / max(tn, 1)
     return {"best_epoch": be, "best_val_loss": bv, "final_val_loss": lv, "best_val_ppl": math.exp(min(bv, 20)),
-            "final_val_ppl": math.exp(min(lv, 20)), "test_ppl": math.exp(min(test_loss, 20)), "ckpt": bp}
+            "final_val_ppl": math.exp(min(lv, 20)), "test_ppl": math.exp(min(test_loss, 20)), "ckpt": bp,
+            "curve_rows": curve_rows}
 
 def export_ckpt_drive(name, local_path):
     """Durable export to Drive placeholder r014_ckpt_<name>.pt; read back; sha."""
@@ -342,10 +351,11 @@ def main():
 
     # Train only a prefix of the already precomputed+gated schedule (DS binding repair B1).
     perms_train = perms_full[:train_epochs]
-    metrics = []; ckman = []
+    metrics = []; ckman = []; curves = []
     for d in R014_DOSES:
         m = models[d].to(device)
         res = train_condition(m, d, splits, perms_train, bs, tdrop, device, cfg, out, seed)
+        curves.extend(res["curve_rows"]); wcsv(out / "learning_curves.csv", curves)
         cksha = sha_file(res["ckpt"]); local_size = res["ckpt"].stat().st_size
         puri = psha = ""; psize = 0; pver = False
         try:
