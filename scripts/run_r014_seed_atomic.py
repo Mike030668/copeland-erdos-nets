@@ -181,7 +181,13 @@ def load_conf():
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--config", required=True); ap.add_argument("--output", required=True)
-    ap.add_argument("--seed", type=int, required=True); a = ap.parse_args()
+    ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--exchange-tag", default="",
+                     help="Optional suffix appended to the Drive exchange checkpoint name "
+                          "(e.g. '_v2') so a re-run at the same seed does not overwrite an "
+                          "earlier run's durable checkpoints still referenced by an immutable "
+                          "package's checkpoint_manifest.csv.")
+    a = ap.parse_args()
     cfg = json.loads(Path(a.config).read_text()); out = Path(a.output); out.mkdir(parents=True, exist_ok=True)
     (out / "checkpoints").mkdir(exist_ok=True); seed = a.seed
     dump_json(out / "RUNTIME_FREEZE.json", cfg["runtime_freeze"])
@@ -343,7 +349,7 @@ def main():
         cksha = sha_file(res["ckpt"]); local_size = res["ckpt"].stat().st_size
         puri = psha = ""; psize = 0; pver = False
         try:
-            puri, psha, psize = export_ckpt_drive(f"{d}_seed{seed}", res["ckpt"]); pver = (psha == cksha and psize == local_size)
+            puri, psha, psize = export_ckpt_drive(f"{d}_seed{seed}{a.exchange_tag}", res["ckpt"]); pver = (psha == cksha and psize == local_size)
         except Exception as e:
             print(f"[r014] durable export failed {d} {type(e).__name__}", flush=True)
         if not pver:
