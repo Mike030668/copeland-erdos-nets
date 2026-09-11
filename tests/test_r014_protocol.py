@@ -7,21 +7,23 @@ allowlist count and the recomputed (not transplanted) s_xav are tested for
 real, per DS's binding amendments (2026-09-11).
 """
 from __future__ import annotations
-import importlib.util, math
+import importlib.util, json, math
 from pathlib import Path
 import pytest, torch
 from copeland_erdos_nets.r010_protocol import (
     derive_seeds, build_base_state, clone_from_base_state, attention_allowlist,
     assert_expected_allowlist_count, apply_attention_intervention, tensor_sha256,
-    collect_named_tensors,
+    collect_named_tensors, epoch_index_permutations, hash_int_sequence,
+    SEED_MODEL_OFFSET, SEED_SHUFFLE_OFFSET, SEED_EMBEDDING_OFFSET,
 )
 from copeland_erdos_nets.r013_protocol import (
     ladder_factors, xavier_scalar_std, rms, apply_embedding_dose, assert_no_weight_tying,
-    cosine_and_maxdiff,
+    cosine_and_maxdiff, all_epoch_batch_parity,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 SCREEN = ROOT / "scripts" / "run_transformer_screening.py"
+RUNNER = ROOT / "scripts" / "run_r014_seed_atomic.py"
 R014_DOSES = ("D_xavier", "D_mid1", "D_ctor")
 
 # Real R014 shape (former R009, recovered from configs/r009_scaleup.json model dims;
@@ -41,6 +43,16 @@ def _load():
 @pytest.fixture(scope="module")
 def screening():
     return _load()
+
+
+def _load_runner():
+    s = importlib.util.spec_from_file_location("r014run", RUNNER)
+    m = importlib.util.module_from_spec(s); s.loader.exec_module(m); return m
+
+
+@pytest.fixture(scope="module")
+def runner():
+    return _load_runner()
 
 
 def _r014_shape(sc):
@@ -169,3 +181,134 @@ def test_pregate_before_train_condition_in_source():
     i_gate = src.index("PRE-TRAINING HARD STOP")
     i_train_call = src.index("res = train_condition(")
     assert i_gate < i_train_call
+
+
+# --- DS Smoke Checkpoint Round 1 binding repairs (B1/B2/B3), 6 targeted tests (B5) ---
+
+def test_d_mid1_explicit_construction_formula():
+    """D_mid1's target RMS must equal r**(2/3) * RMS(base) with r = s_xav / RMS(base),
+    computed directly from the ladder formula -- not merely 'between D_xavier and D_ctor'."""
+    torch.manual_seed(0)
+    base_emb = torch.randn(VOCAB, D_MODEL) * 0.05
+    rms_ctor = rms(base_emb)
+    s_xav = xavier_scalar_std(VOCAB, D_MODEL)
+    r = s_xav / rms_ctor
+    expected_target_rms = (r ** (2.0 / 3.0)) * rms_ctor
+    m = torch.nn.Module(); m.token_emb = torch.nn.Embedding(VOCAB, D_MODEL)
+    meta = apply_embedding_dose(m, "D_mid1", base_emb, VOCAB, D_MODEL)
+    assert meta["factor_rel_ctor"] == pytest.approx(r ** (2.0 / 3.0))
+    assert meta["target_rms"] == pytest.approx(expected_target_rms, rel=1e-9)
+    assert meta["realized_rms"] == pytest.approx(expected_target_rms, abs=1e-6)
+
+
+def test_full_15epoch_schedule_derivation_and_mutated_hash_detected():
+    """DS binding repair B1: the schedule is derived for the full canonical
+    schedule_epochs=15 regardless of a smaller train_epochs, is reproducible from
+    the same seed_shuffle, and all_epoch_batch_parity must catch a single mutated
+    per-condition hash within that 15-epoch schedule (negative case)."""
+    schedule_epochs = 15
+    perms_a = epoch_index_permutations(200, schedule_epochs, seed_shuffle=99020011)
+    perms_b = epoch_index_permutations(200, schedule_epochs, seed_shuffle=99020011)
+    assert len(perms_a) == schedule_epochs
+    assert [hash_int_sequence(p) for p in perms_a] == [hash_int_sequence(p) for p in perms_b]
+
+    doses = ("D_xavier", "D_mid1", "D_ctor")
+    rows = [{"dose": d, "epoch": ep + 1, "batch_order_hash": hash_int_sequence(perms_a[ep])}
+            for d in doses for ep in range(schedule_epochs)]
+    assert all_epoch_batch_parity(rows, len(doses))  # identical schedule shared by all doses -> PASS
+
+    mutated = [dict(r) for r in rows]
+    mutated[0]["batch_order_hash"] = "deadbeef" * 8  # corrupt one dose's epoch-1 hash
+    assert not all_epoch_batch_parity(mutated, len(doses))  # must be caught, not silently accepted
+
+
+def test_durable_checkpoint_readback_verifier_success_and_failure(runner, tmp_path):
+    """sha_file() (the durable-export read-back verifier's hash primitive) must
+    match identical bytes and must NOT match corrupted bytes -- both the success
+    path (persistent_verified=true) and failure path (persistent_verified=false)
+    that gate `raise SystemExit(f"durable ckpt verify FAIL {d}")` in main()."""
+    local = tmp_path / "ckpt_local.pt"
+    local.write_bytes(b"r014-fake-checkpoint-bytes" * 1000)
+    local_sha = runner.sha_file(local)
+    local_size = local.stat().st_size
+
+    readback_ok = tmp_path / "ckpt_readback_ok.pt"
+    readback_ok.write_bytes(local.read_bytes())  # simulates a correct Drive round-trip
+    pver_success = (runner.sha_file(readback_ok) == local_sha and readback_ok.stat().st_size == local_size)
+    assert pver_success is True
+
+    readback_bad = tmp_path / "ckpt_readback_bad.pt"
+    readback_bad.write_bytes(local.read_bytes()[:-1] + b"\x00")  # simulates a corrupted round-trip
+    pver_failure = (runner.sha_file(readback_bad) == local_sha and readback_bad.stat().st_size == local_size)
+    assert pver_failure is False
+
+
+def test_driveronly_runtime_mismatch_hard_stop(runner, tmp_path):
+    """A RUNTIME_FREEZE that matches every field the running process actually has
+    EXCEPT `driver` must raise SystemExit with driver as the sole mismatch -- proving
+    assert_runtime() does real per-field comparison, not an all-or-nothing check."""
+    import numpy, datasets, transformers, subprocess as sp
+    try:
+        real_driver = sp.check_output(
+            ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"], text=True
+        ).strip().splitlines()[0]
+    except Exception:
+        real_driver = "unavailable"
+    matching_freeze = {
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+        "python": __import__("platform").python_version(),
+        "torch": torch.__version__, "cuda": torch.version.cuda or "none",
+        "numpy": numpy.__version__, "datasets": datasets.__version__, "transformers": transformers.__version__,
+        "driver": real_driver,
+    }
+    driver_only_mismatch_freeze = dict(matching_freeze, driver="99.99.99-not-the-real-driver")
+    out = tmp_path
+    with pytest.raises(SystemExit) as ei:
+        runner.assert_runtime(driver_only_mismatch_freeze, out)
+    assert "mismatch=['driver']" in str(ei.value)
+    log = (out / "runtime_assertion.log").read_text()
+    assert "mismatch=['driver']" in log
+    # sanity: the matching freeze (all real values) must NOT raise
+    runner.assert_runtime(matching_freeze, out)
+
+
+def test_rng_policy_config_matches_r010_implementation_offsets():
+    """R014 binding: both shipped configs' rng_policy block must equal the ACTUAL
+    R010 implementation offsets (not a hand-copied literal that could silently drift),
+    matching the runtime HARD STOP check `cfg.get('rng_policy') != impl` in main()."""
+    impl = {
+        "seed_model_offset": SEED_MODEL_OFFSET,
+        "seed_shuffle_offset": SEED_SHUFFLE_OFFSET,
+        "seed_embedding_redraw_offset": SEED_EMBEDDING_OFFSET,
+    }
+    for name in ("r014_canonical.json", "r014_smoke.json"):
+        cfg = json.loads((ROOT / "configs" / name).read_text())
+        assert cfg["rng_policy"] == impl, name
+
+
+def test_mode_aware_status_and_seed1057_can_never_be_canonical(runner):
+    """DS binding repair B3: CANONICAL requires mode==r014_canonical AND seed in the
+    DS-released set AND a full (train_epochs==schedule_epochs) run. seed1057 (used for
+    all smoke runs) is not in CANONICAL_SEEDS and so can never be labeled CANONICAL,
+    even if someone mistakenly points a full-schedule run at it."""
+    assert 1057 not in runner.CANONICAL_SEEDS
+    assert runner.CANONICAL_SEEDS == frozenset({57, 58, 59, 60, 61})
+
+    smoke_cfg = {"experiment": {"mode": "r014_smoke"}}
+    canon_cfg = {"experiment": {"mode": "r014_canonical"}}
+
+    # bounded smoke on the smoke seed: NONCANONICAL_SMOKE
+    label = runner.seed_status_label(smoke_cfg, 1057, schedule_epochs=15, train_epochs=1)
+    assert label.startswith("NONCANONICAL_SMOKE seed=1057")
+
+    # full 15/15 schedule but on seed1057 (not DS-released) must STILL be NONCANONICAL_SMOKE
+    label_full_wrong_seed = runner.seed_status_label(canon_cfg, 1057, schedule_epochs=15, train_epochs=15)
+    assert label_full_wrong_seed.startswith("NONCANONICAL_SMOKE seed=1057")
+
+    # bounded run on a DS-released canonical seed must STILL be NONCANONICAL_SMOKE
+    label_bounded_real_seed = runner.seed_status_label(canon_cfg, 57, schedule_epochs=15, train_epochs=1)
+    assert label_bounded_real_seed.startswith("NONCANONICAL_SMOKE seed=57")
+
+    # only mode==r014_canonical AND seed released AND full schedule -> CANONICAL
+    label_true_canonical = runner.seed_status_label(canon_cfg, 57, schedule_epochs=15, train_epochs=15)
+    assert label_true_canonical.startswith("CANONICAL seed=57")

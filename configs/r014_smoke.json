@@ -26,6 +26,7 @@
   },
   "training": {
     "epochs": 1,
+    "schedule_epochs": 15,
     "lr": 0.0005,
     "weight_decay": 0.01,
     "device": "auto"

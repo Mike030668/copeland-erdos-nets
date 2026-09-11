@@ -19,6 +19,27 @@ DS Design Validation binding amendments (2026-09-11):
    dropped in R012/R013's runners since n_layers=2 made it implicit -- R014
    restores the explicit gate since n_layers changes).
 
+DS Smoke Checkpoint Round 1 binding repairs (2026-09-11, v2):
+B1. The full canonical `schedule_epochs` (15) batch schedule is ALWAYS
+    precomputed, persisted (epoch_batch_hashes.csv), and parity-gated before
+    the first optimizer step -- even when `train_epochs` (config
+    `training.epochs`) is smaller for a bounded smoke. Training then uses a
+    prefix of that same precomputed schedule, never a separately generated
+    one.
+B2. Attention Xavier g=1.0 is applied exactly ONCE, directly on the shared
+    `base` model, before any condition is cloned from it -- not per-condition
+    on each clone (even though the old per-condition-call path was numerically
+    equivalent by construction, DS required the code to literally match the
+    frozen causal path: construct -> attention ONCE -> freeze -> clone 3x,
+    embedding-only difference after that point). `shared_base_state` is now a
+    real gate (each condition's attention weights hash-compared directly to
+    the frozen `base`, not just to each other).
+B3. `SEED_STATUS.txt` is mode-aware: `NONCANONICAL_SMOKE seed=... conditions=3`
+    unless `cfg["experiment"]["mode"]=="r014_canonical"` AND the seed is one of
+    the DS-released canonical seeds (57-61) AND `train_epochs==schedule_epochs`
+    (a full canonical run, not a bounded smoke) -- seed1057 can never be
+    labeled canonical.
+
 No dynamics telemetry (R013's embedding-RMS/gradient-L2 tracking) -- not
 required per R014 design; standard per-epoch train/val loss + best_epoch
 checkpoint-selection timing are sufficient diagnostics.
@@ -43,6 +64,19 @@ ROOT = Path(__file__).resolve().parents[1]
 R014_DOSES = ("D_xavier", "D_mid1", "D_ctor")
 HISTORICAL_R009_CONFIG_VOCAB_SIZE = 28996  # dead field, never consumed by the historical runner
 EXPECTED_EFFECTIVE_VOCAB_SIZE = 50257      # tok.vocab_size for gpt2; hard-asserted below
+CANONICAL_SEEDS = frozenset({57, 58, 59, 60, 61})  # DS-released canonical seeds only
+
+
+def seed_status_label(cfg: dict, seed: int, schedule_epochs: int, train_epochs: int) -> str:
+    """DS binding repair B3: mode-aware status for a SUCCESSFUL completion. Canonical
+    requires ALL of: mode==r014_canonical, seed in the DS-released set, and a full
+    (non-bounded) run (train_epochs==schedule_epochs). seed1057 (or any non-released
+    seed, or any bounded run) can never be labeled canonical."""
+    mode = cfg.get("experiment", {}).get("mode", "")
+    is_full_canonical_run = (mode == "r014_canonical" and seed in CANONICAL_SEEDS
+                              and train_epochs == schedule_epochs)
+    tag = "CANONICAL" if is_full_canonical_run else "NONCANONICAL_SMOKE"
+    return f"{tag} seed={seed} conditions={len(R014_DOSES)}\n"
 
 def wcsv(p, rows):
     if not rows:
@@ -184,30 +218,41 @@ def main():
     def factory():
         return hist.DecoderOnlyTransformer(vocab_size=vocab, d_model=dm_d, n_heads=int(cfg["model"]["n_heads"]),
             d_ff=int(cfg["model"]["d_ff"]), n_layers=n_layers, max_seq_len=int(cfg["data"]["seq_len"]))
-    s = derive_seeds(seed); epochs = int(cfg["training"]["epochs"])
-    perms = epoch_index_permutations(len(splits["train"]), epochs, s.seed_shuffle)
+    s = derive_seeds(seed)
+    schedule_epochs = int(cfg["training"].get("schedule_epochs", cfg["training"]["epochs"]))
+    train_epochs = int(cfg["training"]["epochs"])
+    if train_epochs > schedule_epochs:
+        raise SystemExit(f"CONFIG HARD STOP: train_epochs={train_epochs} > schedule_epochs={schedule_epochs}")
+    # DS binding repair B1: ALWAYS precompute/persist/gate the full canonical
+    # schedule (15 epochs), even when training only a prefix of it for a
+    # bounded smoke. Training below uses perms_full[:train_epochs] -- the
+    # SAME precomputed+gated schedule, never a separately regenerated one.
+    perms_full = epoch_index_permutations(len(splits["train"]), schedule_epochs, s.seed_shuffle)
+
+    # DS binding repair B2: construct once -> apply Xavier g=1.0 attention ONCE
+    # on the shared base -> freeze -> clone 3 conditions from it. Only
+    # token_emb.weight may differ across conditions after this point.
     base, base_h = build_base_state(factory, s.seed_model, device="cpu")
     allow = attention_allowlist(base)
-
-    # DS binding amendment #2: explicit 16/16 attention-parity count gate (was implicit at n_layers=2)
     allowlist_count_ok = True
     try:
         assert_expected_allowlist_count(allow, n_layers=n_layers)
     except AssertionError as e:
         allowlist_count_ok = False
         print(f"[r014] attention allowlist count FAIL: {e}", flush=True)
+    apply_attention_intervention(base, "xavier_g1.0", s, allowlist=allow)  # ONCE, on the shared base itself
+    base_attn_sha = {n: tensor_sha256(dict(base.named_parameters())[n]) for n in allow}  # frozen post-attention reference
 
-    base_emb = base.token_emb.weight.detach().clone()
+    base_emb = base.token_emb.weight.detach().clone()  # base = token_emb.weight from the shared (post-attention) base_state
     r = xavier_scalar_std(vocab, dm_d) / rms(base_emb); facs = ladder_factors(r)
     wcsv(out / "scale_ladder.csv", [{"dose": d, "factor_rel_ctor": facs[d],
         "target_rms": (rms(base_emb) if d == "D_ctor" else facs[d] * rms(base_emb)),
         "r": r, "s_xav": xavier_scalar_std(vocab, dm_d), "rms_constructor": rms(base_emb)} for d in R014_DOSES])
     fc = []; embh = []; bdir = []; attnrows = []; unch = []; models = {}
     for d in R014_DOSES:
-        m = clone_from_base_state(base, factory)
+        m = clone_from_base_state(base, factory)  # clone from the FROZEN post-attention base; no per-condition attention call
         assert_no_weight_tying(m)
         meta = apply_embedding_dose(m, d, base_emb, vocab, dm_d)
-        apply_attention_intervention(m, "xavier_g1.0", s, allowlist=allow)
         models[d] = m
         fc.append({"dose": d, "seed": seed, **{k: meta[k] for k in ["factor_rel_ctor", "s_xav", "r", "rms_constructor", "target_rms", "realized_rms", "base_direction_hash", "emb_hash"]}})
         embh.append({"dose": d, "seed": seed, "emb_sha256": meta["emb_hash"]})
@@ -242,6 +287,10 @@ def main():
             if tensor_sha256(tt) != base_h[n]:
                 changed_ok = False
     attn_ident = all(tensor_sha256(dict(models[d].named_parameters())[n]) == tensor_sha256(dict(models["D_ctor"].named_parameters())[n]) for d in R014_DOSES for n in allow)
+    # DS binding repair B2: real shared_base_state gate -- each condition's attention
+    # weights must hash-match the FROZEN base's own post-attention weights directly
+    # (not merely match each other), proving the literal shared-base construction path.
+    shared_base_ok = all(tensor_sha256(dict(models[d].named_parameters())[n]) == base_attn_sha[n] for d in R014_DOSES for n in allow)
     wt_ok = True
     try:
         for d in R014_DOSES:
@@ -254,7 +303,7 @@ def main():
         ("runtime_assert_pass", True),
         ("source_provenance_present", True),
         ("rng_policy_config==impl", True),
-        ("shared_base_state", True),
+        ("shared_base_state", shared_base_ok),
         ("D_ctor==base_exact", tensor_sha256(models["D_ctor"].token_emb.weight) == tensor_sha256(base_emb)),
         ("xavier_scalar_formula", abs(xavier_scalar_std(vocab, dm_d) - (2.0 / (vocab + dm_d)) ** 0.5) < 1e-15),
         ("realized_rms==target", rms_ok),
@@ -273,18 +322,24 @@ def main():
     wcsv(out / "factor_construction.csv", fc); wcsv(out / "embedding_hashes.csv", embh)
     wcsv(out / "base_direction_construction.csv", bdir); wcsv(out / "attention_parity.csv", attnrows)
     wcsv(out / "unchanged_parameter_hashes.csv", unch)
-    wcsv(out / "epoch_batch_hashes.csv", [{"dose": d, "epoch": ep + 1, "batch_order_hash": hash_int_sequence(perms[ep][:(len(perms[ep]) // bs) * bs] if tdrop else perms[ep])} for d in R014_DOSES for ep in range(epochs)])
+    # DS binding repair B1: hash the FULL schedule_epochs (15) schedule, not just
+    # the (possibly smaller) number of epochs actually trained this run.
+    wcsv(out / "epoch_batch_hashes.csv", [{"dose": d, "epoch": ep + 1, "batch_order_hash": hash_int_sequence(perms_full[ep][:(len(perms_full[ep]) // bs) * bs] if tdrop else perms_full[ep])} for d in R014_DOSES for ep in range(schedule_epochs)])
     from copeland_erdos_nets.r013_protocol import all_epoch_batch_parity as _batp
     _ebh = list(csv.DictReader((out / "epoch_batch_hashes.csv").open()))
     if not _batp(_ebh, len(R014_DOSES)):
         (out / "SEED_STATUS.txt").write_text("NONCANONICAL_BATCH_PARITY_FAILURE (pre-training)\n")
         raise SystemExit("PRE-TRAINING HARD STOP: all_epoch_batch_parity FAIL")
-    print(f"[r014] seed {seed} PARITY PASS (16/16 attention, vocab=50257 asserted); training {len(R014_DOSES)} conditions", flush=True)
+    print(f"[r014] seed {seed} PARITY PASS (16/16 attention, vocab=50257 asserted, "
+          f"{schedule_epochs}-epoch schedule pre-gated); training {train_epochs}/{schedule_epochs} "
+          f"epochs x {len(R014_DOSES)} conditions", flush=True)
 
+    # Train only a prefix of the already precomputed+gated schedule (DS binding repair B1).
+    perms_train = perms_full[:train_epochs]
     metrics = []; ckman = []
     for d in R014_DOSES:
         m = models[d].to(device)
-        res = train_condition(m, d, splits, perms, bs, tdrop, device, cfg, out, seed)
+        res = train_condition(m, d, splits, perms_train, bs, tdrop, device, cfg, out, seed)
         cksha = sha_file(res["ckpt"]); local_size = res["ckpt"].stat().st_size
         puri = psha = ""; psize = 0; pver = False
         try:
@@ -312,9 +367,10 @@ def main():
         wcsv(out / "parity_summary.csv", par); raise SystemExit("all_epoch_batch_parity FAIL")
     wcsv(out / "parity_summary.csv", par)
     dump_json(out / "resolved_config.json", cfg); dump_json(out / "dataset_manifest.json", dm)
-    (out / "SEED_STATUS.txt").write_text(f"CANONICAL seed={seed} conditions={len(R014_DOSES)}\n")
+    status = seed_status_label(cfg, seed, schedule_epochs, train_epochs)
+    (out / "SEED_STATUS.txt").write_text(status)
     (out / "DURABLE_MARKER.txt").write_text(f"R014_SEED{seed}_COMPLETE\n")
-    print(f"[r014] seed {seed} COMPLETE {len(R014_DOSES)} conditions", flush=True)
+    print(f"[r014] seed {seed} COMPLETE {train_epochs}/{schedule_epochs} epochs x {len(R014_DOSES)} conditions ({status.strip()})", flush=True)
 
 if __name__ == "__main__":
     main()
