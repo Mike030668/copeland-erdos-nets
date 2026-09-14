@@ -107,16 +107,19 @@ def make_fig01(palette):
     steps = [
         "Historical\nselective-init gain",
         "R010\nattention-only attribution fails",
-        "R011\nbenefit localizes to\ntoken embedding",
-        "R012\ninitial RMS scale\ndominates redraw",
+        "R011\ndominant contrast follows\ntoken embedding",
+        "R012\ninitial RMS scale accounts for\ndominant factorial contrast",
         "R013\nfresh-seed\ndose response",
-        "R014\ntransfer to tested\nlarger capacity",
+        "R014\nordering reproduces at one\nlarger tested capacity",
     ]
     # Two-row zig-zag layout (top row left->right, bottom row right->left) so
     # larger, readable text has room without boxes overlapping: 3 columns
-    # instead of 6, at roughly double the per-box width of a single row.
-    positions = [(0, 1), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0)]
-    fig, ax = plt.subplots(figsize=(11, 6.4))
+    # instead of 6, at wide-enough per-column spacing for the longest box
+    # text (R012's three-line label is the widest).
+    COL = 1.65  # column spacing -- wide enough that the longest (R012) box's
+                # text does not reach the neighboring column's arrow.
+    positions = [(0, 1), (COL, 1), (2 * COL, 1), (2 * COL, 0), (COL, 0), (0, 0)]
+    fig, ax = plt.subplots(figsize=(14, 6.6))
     ax.axis("off")
     boxes = []
     for i, (text, (x, y)) in enumerate(zip(steps, positions)):
@@ -134,12 +137,12 @@ def make_fig01(palette):
     for a, b in arrow_pairs:
         xa, ya = boxes[a]; xb, yb = boxes[b]
         if ya == yb:
-            dx = 0.30 if xb > xa else -0.30
+            dx = 0.62 if xb > xa else -0.62
             xytext = (xa + dx, ya); xy = (xb - dx, yb)
         else:
             xytext = (xa, ya - 0.22); xy = (xb, yb + 0.22)
         ax.annotate("", xy=xy, xytext=xytext, arrowprops=dict(arrowstyle="-|>", lw=2.4, color="black"))
-    ax.set_xlim(-0.65, 2.65)
+    ax.set_xlim(-0.95, 2 * COL + 0.95)
     ax.set_ylim(-0.55, 1.55)
     fig.tight_layout()
     return fig

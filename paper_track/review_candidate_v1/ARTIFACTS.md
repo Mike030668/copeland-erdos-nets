@@ -8,7 +8,7 @@ directory scan; the total is len(scanned files) + 1 (this file).
 | path | size (bytes) | SHA-256 |
 |---|---:|---|
 | BIBLIOGRAPHY_v0_3.md | 4227 | `80c682a8e9f0929d3a5c355233ab82debede565608b84e94744bc882308eada3` |
-| COLOR/fig01_causal_reconstruction.png | 101403 | `f191da2ddbf4ed051893fd6c9bf0c4996777868e581d72adac71712ac080a5ab` |
+| COLOR/fig01_causal_reconstruction.png | 114369 | `a589cd0de21864082fd6f89e3c71a255da577c9005701029b8a4e95f0c153a36` |
 | COLOR/fig02_R010_test_ppl.png | 114609 | `0711d6860929d599a9bd633f3d28cd40856baec937f5f3a46ee9f54db3f9cdfe` |
 | COLOR/fig03_R011_factorial_test_ppl.png | 91241 | `156d74fd49bd75e20a105daae6a6306d1b497b9539d274dddecbeac0ecd14b44` |
 | COLOR/fig04_R012_factorial_test_ppl.png | 94393 | `a7d50fdd13f04388af5321410b6a60e214138167e0ea6a09d96215231482b1ed` |
@@ -20,9 +20,9 @@ directory scan; the total is len(scanned files) + 1 (this file).
 | COLOR/fig07d_R014_final_vs_best_val_ppl.png | 86016 | `065645d7f9487f393cb17b335e0f413dabad4a288cf4a0fb878454db726285bb` |
 | FIGURE_ASSETS_NOTE.md | 4308 | `9eb8a87ac73a9006f5b66240fe90ac4dcef65928fb35430775471a9a810a4b6e` |
 | FIGURE_BINDING_MANIFEST.csv | 2060 | `e6ab2ec96d23bef0602e8f9b36662c32e811916ae333b885aadf5cdf925b3ff5` |
-| FIGURE_MANIFEST.csv | 2471 | `92c4f117adce224c7f4946c39ad247c1b7970260c5245c4a2d946c3226a41380` |
+| FIGURE_MANIFEST.csv | 2472 | `0cd416e05cb1bfdca5fe4422b50e217b03a656a9d8f9cfc5b95435fb3e0dbaa5` |
 | FIGURE_TABLE_REGISTRY_R010_R014.md | 15933 | `e6351cca5b0ca048f88652e0e5905bd007e68d13caebf72df4e6b0d48d702efe` |
-| GRAYSCALE_PRINT_SAFE/fig01_causal_reconstruction.png | 94216 | `998bfc782f35cec1dd4149ef385a1f675e464c6132b8e5b522eac8e8119eaddb` |
+| GRAYSCALE_PRINT_SAFE/fig01_causal_reconstruction.png | 105475 | `ffbf5b8ae2512c6a43c5d2d6b2eaa50e670ab139cccbbfdf05d985f04b2c0079` |
 | GRAYSCALE_PRINT_SAFE/fig02_R010_test_ppl.png | 115373 | `256bfe56e9a065521c9d18bbf7f9229f527d520c889d7c6b59acc5cb88a2bb0e` |
 | GRAYSCALE_PRINT_SAFE/fig03_R011_factorial_test_ppl.png | 93213 | `0a5521c1a8eb72676b6554c784322a0b6b969e4a489a1ef524eea48d608be90b` |
 | GRAYSCALE_PRINT_SAFE/fig04_R012_factorial_test_ppl.png | 95775 | `96d73c9855571b2748b7eb06b397e4339223464cfe4e7f6e3c4ac86baf10db1a` |
@@ -79,6 +79,6 @@ directory scan; the total is len(scanned files) + 1 (this file).
 | manuscript_figures/fig07d_R014_final_vs_best_val_ppl.png | 49095 | `60a3b4720c231d7f44ea1035267aed88749aab1ae755cc284406b2eccee4e88b` |
 | paper_post_R014_v0_3.md | 45421 | `c43e0a3d074a04ec82297096574b8ec7204e1e6c09b87bd3facb52b7500728af` |
 | scripts/generate_manuscript_figures.py | 1724 | `b2e9a3849287250978635ff7a02b2e927a2188178ba6e1d0951c7f25b7ec01e0` |
-| scripts/generate_manuscript_figures_dual.py | 16667 | `ebb104c898f440c8fcf4321277a53e7f516f406cdae9ead0368b4ac751be97d6` |
+| scripts/generate_manuscript_figures_dual.py | 16938 | `b07f762d2b37dede20bb4edc3291019bb4a77e3f316b1886336bef12097ab7ff` |
 | scripts/generate_manuscript_tables.py | 6320 | `54274ee308701aec537a24a5477b9b85758914f9fd49dee58bd0400f3a4364d4` |
 | source_data/dynamics_by_epoch_R013.csv | 95297 | `29ab1536a2d7ca2df99b7e1772346ed2fbd81d4ad3a80e5b4755e43d09e6d9c5` |
