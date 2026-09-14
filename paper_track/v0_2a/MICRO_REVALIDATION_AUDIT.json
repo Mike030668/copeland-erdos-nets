@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "checks": {
+    "v0_2_sha_unchanged": true,
+    "v0_2_sha256": "e71edbe7e0c4a3d28af0d32a266234a8cad8e0c27b618d80b5e15525f6ca5c57",
+    "tables_2_6_text_unchanged": true,
+    "title_unchanged": true,
+    "bibliography_unchanged": true,
+    "r012_provenance_disclosures_added": true,
+    "eq1_positional_notation_clarified": true,
+    "registry_append_only_exact_binding_note_present": true,
+    "table_7_updated": true,
+    "figures_regenerated": false,
+    "experiments_run": false,
+    "ds_classes_changed": false
+  },
+  "v0_2_figure_sha256": {
+    "fig01_causal_reconstruction.png": "d4258cce8c34ca8b404ef05a59ad285dd58cd246515a1efc3585970fdc6e3989",
+    "fig02_R010_test_ppl.png": "236df719e3e80e436c8d346b82f92735f92946795f2918e4bae7e521a2c8a4fd",
+    "fig03_R011_factorial_test_ppl.png": "79ffa9333ede65f15a9acad6bbf8530572e3d6e03f244abbd1932ed57187a9ee",
+    "fig04_R012_factorial_test_ppl.png": "10eb1b1b60dc80c5932c6c1d34841e08ebc74aaa6f144f21935d2a30829acb46",
+    "fig05_R013_dose_response_test_ppl.png": "c9b9d14243419a13fcd6ad783405db9bc094dda6dd6104e58a652d7cdeb30915",
+    "fig06_R014_dose_response_test_ppl.png": "9aa424d0ede3123a0952439665ff38ed98778a07e5eb28d72575d1eee70a7b92",
+    "fig07a_R013_embedding_rms_trajectory.png": "4830a1abf03eb6df86f148117258352c97f51e892d99511acb2756407e6e1b9b",
+    "fig07b_R013_embedding_grad_l2_trajectory.png": "aa196cca73fa74e8f699d859ef4d6bdd9ed37ae347f858ee117a7443f7af6335",
+    "fig07c_R014_best_epoch_by_dose.png": "e9b2fead8d2a3b2af93fd54b84bc4f70413133289b93ca0d3e1e5db208e65f4e",
+    "fig07d_R014_final_vs_best_val_ppl.png": "60a3b4720c231d7f44ea1035267aed88749aab1ae755cc284406b2eccee4e88b"
+  }
+}

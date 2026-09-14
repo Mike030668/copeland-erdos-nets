@@ -1,0 +1,45 @@
+{
+  "package": "P5_v0_2a_microrepair",
+  "source_v0_2_sha256": "e71edbe7e0c4a3d28af0d32a266234a8cad8e0c27b618d80b5e15525f6ca5c57",
+  "source_v0_2_immutable": true,
+  "scientific_contradiction": "NONE",
+  "numerical_values_changed": false,
+  "figures_changed": false,
+  "experiments_run": false,
+  "ds_classes_changed": false,
+  "tables_2_6_regenerated": false,
+  "table_7_changed": true,
+  "manifest_self_excluded": true,
+  "files": [
+    {
+      "name": "FIGURE_TABLE_REGISTRY_R010_R014.md",
+      "size": 15933,
+      "sha256": "e6351cca5b0ca048f88652e0e5905bd007e68d13caebf72df4e6b0d48d702efe"
+    },
+    {
+      "name": "MANUSCRIPT_EVIDENCE_BINDINGS_R010_R014.md",
+      "size": 5539,
+      "sha256": "343485ed7e06771c8cf812de4d983231be74cadc0f466ee0210f87fa4d689fa8"
+    },
+    {
+      "name": "MICRO_REVALIDATION_AUDIT.json",
+      "size": 1684,
+      "sha256": "afb680b80ac00c5bf378247a0019840c8ceec2f7d0e13cccb14f9c0cfe2e7384"
+    },
+    {
+      "name": "PAPER_REVISION_CHANGELOG.md",
+      "size": 8471,
+      "sha256": "5ecfd603653174082d28781c235af86ee8046e3997d1ea58c71d8adeea8036bb"
+    },
+    {
+      "name": "paper_post_R014_v0_2a.md",
+      "size": 38618,
+      "sha256": "1238b917dcc881c07e2a48603caca87e526bc733dcffe9e9034a23e12e93464b"
+    },
+    {
+      "name": "table_7_reproducibility_v0_2a.md",
+      "size": 1335,
+      "sha256": "aa358b20f9e83b373e5b4907e5e6d652b46102a6be70a406e92b9809b4be3586"
+    }
+  ]
+}
