@@ -1,0 +1,16 @@
+contrast,seed,delta_test_ppl,delta_best_val_ppl
+D_xavier_minus_D_ctor,57,-35.0615,-38.1733
+D_xavier_minus_D_ctor,58,-32.8235,-34.3043
+D_xavier_minus_D_ctor,59,-34.3048,-38.2589
+D_xavier_minus_D_ctor,60,-38.4693,-41.5721
+D_xavier_minus_D_ctor,61,-33.062,-37.7765
+D_xavier_minus_D_mid1,57,-4.5773,-5.6023
+D_xavier_minus_D_mid1,58,-2.5763,-3.9302
+D_xavier_minus_D_mid1,59,-6.4282,-7.9102
+D_xavier_minus_D_mid1,60,-4.7378,-6.4218
+D_xavier_minus_D_mid1,61,-7.0959,-7.4364
+D_mid1_minus_D_ctor,57,-30.4842,-32.5711
+D_mid1_minus_D_ctor,58,-30.2473,-30.374
+D_mid1_minus_D_ctor,59,-27.8766,-30.3486
+D_mid1_minus_D_ctor,60,-33.7315,-35.1504
+D_mid1_minus_D_ctor,61,-25.9662,-30.3402

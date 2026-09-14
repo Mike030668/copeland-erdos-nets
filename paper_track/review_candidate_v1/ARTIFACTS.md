@@ -1,0 +1,60 @@
+# ARTIFACTS
+
+Generated STRICTLY LAST. Every row below comes from one programmatic
+directory scan; the total is len(scanned files) + 1 (this file).
+
+**Total: 52 files** (51 scanned below + this ARTIFACTS.md).
+
+| path | size (bytes) | SHA-256 |
+|---|---:|---|
+| BIBLIOGRAPHY_v0_3.md | 4227 | `80c682a8e9f0929d3a5c355233ab82debede565608b84e94744bc882308eada3` |
+| FIGURE_BINDING_MANIFEST.csv | 2060 | `e6ab2ec96d23bef0602e8f9b36662c32e811916ae333b885aadf5cdf925b3ff5` |
+| FIGURE_TABLE_REGISTRY_R010_R014.md | 15933 | `e6351cca5b0ca048f88652e0e5905bd007e68d13caebf72df4e6b0d48d702efe` |
+| MANUSCRIPT_EVIDENCE_BINDINGS_R010_R014.md | 5539 | `343485ed7e06771c8cf812de4d983231be74cadc0f466ee0210f87fa4d689fa8` |
+| MICRO_REVALIDATION_AUDIT.json | 1684 | `afb680b80ac00c5bf378247a0019840c8ceec2f7d0e13cccb14f9c0cfe2e7384` |
+| P5_v0_3_INTERNAL_ADVERSARIAL_REREVIEW_DS.md | 6964 | `815fe74e7cb3168cd344b6d1b89c329ce607618948a84f4909c25364bb11bed4` |
+| PACKAGE_MANIFEST_v0_2a.json | 1433 | `da951a7260dba280ceb75668009dea7ca6332db1cb6f8aa03c47fe8ca56e0999` |
+| PACKAGE_STATUS.md | 2912 | `4ef4fd17f5f7bd8ff61a780f05fd2311b55720a3c8319b41614f9df655d4ce0a` |
+| PAPER_REVISION_CHANGELOG.md | 10823 | `6e3d1ae14d6f8af3777908fcb1f3c2db10089742d374cf411e2ca7bd272ecab2` |
+| TECHNICAL_PROVENANCE_NOTE_v0_3.md | 5101 | `3cce6c762f25b7e4312ab7749531c625e1dc6082ed1c371287ca102dd8fe49a0` |
+| V0_2_PACKAGE_MANIFEST.json | 8446 | `c4964fb0c50b6384e522477727e639f11832690081542b1b01c5202d91c5d00b` |
+| canonical_inputs/R010/paired_differences.csv | 2355 | `ac40565617c370f86d92211c730373fadccb204f7322ab41cfc0685a6c19d8e9` |
+| canonical_inputs/R010/per_seed.csv | 3129 | `70995563095dcc233ad5a510738d5435562c519a1bedfeca1ef3207eaa0f5521` |
+| canonical_inputs/R010/summary.csv | 325 | `832c074fdad6862fc810e4aca2ac7cd88e41954b99a324336a1092e9d076e1d5` |
+| canonical_inputs/R011/factorial_contrasts.csv | 519 | `931740713b5548cd4149584342fcbdf9414c711b48da67cb9af4259be74db2ce` |
+| canonical_inputs/R011/factorial_summary.csv | 227 | `62c236f581d947928a14f178c9adbaae9997a8d780be858c96d9e02c9cf86466` |
+| canonical_inputs/R011/per_seed.csv | 1935 | `d83804f2cc396bb6c1c08bb5e0a8a824b87d8cb00b9e58206b0763f29ec9f19a` |
+| canonical_inputs/R012/factorial_contrasts.csv | 550 | `6d1c363e299ee7eea9e52b8ec3cdeffa1de2d83e1eb0ccf9b6fd2f26679d997d` |
+| canonical_inputs/R012/factorial_summary.csv | 256 | `5584218dd4167c53da8976522a799da87d8c40764c1688f1590990fc8894d205` |
+| canonical_inputs/R012/per_seed.csv | 1378 | `7bc7b428efa2cb251954890a18ff9e81a687f5dadbccc125b3eb1f77c56b8d2b` |
+| canonical_inputs/R013/dose_summary.csv | 564 | `d2b5883bea6619672148cf26439d51e54caea3f30bc82ea4f3d060d5f70afd0a` |
+| canonical_inputs/R013/paired_contrasts.csv | 1531 | `4add3e154159c279e05a71352af07fff3ca78257bba40e9e20ef5db12d5f2e64` |
+| canonical_inputs/R013/paired_contrasts_summary.csv | 458 | `89e322b11b6e94c0cf4879a99205f97c7d2e8da51ba3ff5171f31a31a0da78db` |
+| canonical_inputs/R013/per_seed.csv | 2286 | `72e4b649b663f5bee6afb0e6016ea37f3a3791289f1c4134df2905bca308e8fb` |
+| canonical_inputs/R013/scale_ladder.csv | 588 | `67ca39fdfaa99e80314026eedd61ffd406553875547cf8cfa0d1a3f149648eb4` |
+| canonical_inputs/R014/dose_summary.csv | 406 | `af41ea244e96b91a649674a6edaa49f1fb65d45850bd822c402b2757aa81bc45` |
+| canonical_inputs/R014/paired_contrasts.csv | 687 | `aba573d147786b1fd3c9ecefd19ed0b2a267a6be085241f4b3e25c798dfaf2b0` |
+| canonical_inputs/R014/paired_contrasts_summary.csv | 237 | `36dd74c0570fb5688d3dde92060f1e505ca0302bf23877e60f4d32554e338832` |
+| canonical_inputs/R014/per_seed.csv | 1405 | `0c8ec15c2bccc25b483f32cc0b07ed4d53b0a07dfc119d9203f0a9e80a70548b` |
+| canonical_inputs/R014/scale_ladder.csv | 367 | `afd54743139595702abc89a67c8c6e8e33c17fc615de08d54a5c5c575b837a16` |
+| generated_tables/AUDIT_REPORT.json | 758 | `1fd5acb2cad031e81fff18e3adf299062ddebb03528a0b5dade81863c267041a` |
+| generated_tables/table_1_experiment_map.md | 1138 | `0f0aa2b3b1ed9c66f754b92ae8529a3fc6fcfcbaf279d5f66fbe2e36baa62617` |
+| generated_tables/table_2_R010.md | 307 | `f9e2bdd170fee6b7bf06e4360a6734d58850a647c9e7590b5c5e1bd9d1ed9395` |
+| generated_tables/table_3_R011.md | 522 | `d13f5f84e1e8452d7574f0a2092829450d81cfea182a99a4f5d73f248b83cfde` |
+| generated_tables/table_4_R012.md | 414 | `cf2b20e2231b77c55c7f7cdf82156846ecbd8f2d5e89f84f7996609750c7e356` |
+| generated_tables/table_5_R013_doses.md | 874 | `7d1fb751c3cac96c79fc23142caf201e4d4fd65265dbce73f3f70d6bf9dafc09` |
+| generated_tables/table_6_R014_doses.md | 599 | `0118c21043ec9c4c8931c8c963e81b18a17cdf3c9c8165d305ae72a76d28fec0` |
+| generated_tables/table_7_reproducibility.md | 1335 | `aa358b20f9e83b373e5b4907e5e6d652b46102a6be70a406e92b9809b4be3586` |
+| manuscript_figures/fig01_causal_reconstruction.png | 47489 | `d4258cce8c34ca8b404ef05a59ad285dd58cd246515a1efc3585970fdc6e3989` |
+| manuscript_figures/fig02_R010_test_ppl.png | 59430 | `236df719e3e80e436c8d346b82f92735f92946795f2918e4bae7e521a2c8a4fd` |
+| manuscript_figures/fig03_R011_factorial_test_ppl.png | 21037 | `79ffa9333ede65f15a9acad6bbf8530572e3d6e03f244abbd1932ed57187a9ee` |
+| manuscript_figures/fig04_R012_factorial_test_ppl.png | 18761 | `10eb1b1b60dc80c5932c6c1d34841e08ebc74aaa6f144f21935d2a30829acb46` |
+| manuscript_figures/fig05_R013_dose_response_test_ppl.png | 53876 | `c9b9d14243419a13fcd6ad783405db9bc094dda6dd6104e58a652d7cdeb30915` |
+| manuscript_figures/fig06_R014_dose_response_test_ppl.png | 52527 | `9aa424d0ede3123a0952439665ff38ed98778a07e5eb28d72575d1eee70a7b92` |
+| manuscript_figures/fig07a_R013_embedding_rms_trajectory.png | 57651 | `4830a1abf03eb6df86f148117258352c97f51e892d99511acb2756407e6e1b9b` |
+| manuscript_figures/fig07b_R013_embedding_grad_l2_trajectory.png | 66202 | `aa196cca73fa74e8f699d859ef4d6bdd9ed37ae347f858ee117a7443f7af6335` |
+| manuscript_figures/fig07c_R014_best_epoch_by_dose.png | 46289 | `e9b2fead8d2a3b2af93fd54b84bc4f70413133289b93ca0d3e1e5db208e65f4e` |
+| manuscript_figures/fig07d_R014_final_vs_best_val_ppl.png | 49095 | `60a3b4720c231d7f44ea1035267aed88749aab1ae755cc284406b2eccee4e88b` |
+| paper_post_R014_v0_3.md | 45421 | `c43e0a3d074a04ec82297096574b8ec7204e1e6c09b87bd3facb52b7500728af` |
+| scripts/generate_manuscript_figures.py | 1724 | `b2e9a3849287250978635ff7a02b2e927a2188178ba6e1d0951c7f25b7ec01e0` |
+| scripts/generate_manuscript_tables.py | 6320 | `54274ee308701aec537a24a5477b9b85758914f9fd49dee58bd0400f3a4364d4` |

@@ -1,0 +1,8 @@
+contrast,n_seeds,mean_delta_test_ppl,ci95_lo,ci95_hi,ci_excludes_zero
+D_xavier_minus_D_ctor,5,-74.9767,-79.2949,-70.6584,true
+D_below_minus_D_xavier,5,-0.3139,-1.0963,0.4685,false
+D_xavier_minus_D_mid1,5,-8.2214,-10.274,-6.1687,true
+D_mid1_minus_D_mid2,5,-14.1005,-18.0285,-10.1725,true
+D_mid2_minus_D_ctor,5,-52.6548,-53.4602,-51.8494,true
+D_below_minus_D_ctor,5,-75.2906,-80.0932,-70.4879,true
+D_mid1_minus_D_ctor,5,-66.7553,-70.7993,-62.7113,true
