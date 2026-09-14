@@ -10,7 +10,8 @@ RAW_MARKDOWN_MIRROR_SHA256: c43e0a3d074a04ec82297096574b8ec7204e1e6c09b87bd3facb
 MIRROR_TRANSFORMATION: mechanical only (Docs-export markdown-escape unescaping + table/heading restructuring) -- see TECHNICAL_PROVENANCE_NOTE_v0_3.md for the itemized, auditable list; zero words/numbers/claims changed
 TABLES_2_6_VALUES: RETAINED (byte-identical to v0_2a, verified)
 TABLE_7: RETAINED (byte-identical to v0_2a's table_7_reproducibility_v0_2a.md, verified)
-FIGURES: RETAINED, all 10 byte-identical to v0_2a, verified
+FIGURES: RETAINED (manuscript_figures/, 10 files, byte-identical to v0_2a, verified)
+FIGURE_ASSETS_PUBLICATION: ADDED 2026-09-14, presentation-only, DS-requested -- COLOR/ + GRAYSCALE_PRINT_SAFE/ (10 files each, 20 total), same data/means/CIs/axes/labels/figure IDs/lineage as manuscript_figures/, regenerated via scripts/generate_manuscript_figures_dual.py from canonical_inputs/ + source_data/dynamics_by_epoch_R013.csv -- see FIGURE_ASSETS_NOTE.md and FIGURE_MANIFEST.csv
 NUMERICAL_EVIDENCE: RETAINED -- R014 primary contrast D_xavier - D_ctor = -34.7442 [-37.5676, -31.9208] unchanged
 DS_SCIENTIFIC_CLASSIFICATIONS: UNCHANGED
 PRECEDING_IMMUTABLE_SNAPSHOT: paper_track/v0_2a/ at commit 5af18387395009ee35f6c5e809934562733184d6, branch paper-track/v0_2a-materialization -- preserved, NOT modified by this package
