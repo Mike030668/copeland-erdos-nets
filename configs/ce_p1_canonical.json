@@ -1,0 +1,9 @@
+{
+  "experiment": {"name": "CE_P1_scale_controlled", "mode": "canonical", "conditions": ["Gaussian_Xavier_RMS", "CE_LCG_Xavier_RMS", "CE_SHUFFLED_Xavier_RMS"]},
+  "data": {"dataset": "Salesforce/wikitext", "config_name": "wikitext-2-raw-v1", "tokenizer": "gpt2", "batch_size": 32, "seq_len": 128, "train_drop_last": true, "val_drop_last": true, "test_drop_last": false},
+  "model": {"d_model": 128, "n_heads": 4, "d_ff": 512, "n_layers": 2},
+  "training": {"epochs": 15, "lr": 0.0005, "weight_decay": 0.01, "device": "auto"},
+  "rng_policy": {"seed_model_offset": 0, "seed_attention_offset": 10007, "seed_shuffle_offset": 20011, "seed_embedding_offset": 30013},
+  "parity_tolerance": 0.000001,
+  "seeds": [62, 63, 64, 65, 66]
+}
