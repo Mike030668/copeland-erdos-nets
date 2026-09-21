@@ -6,7 +6,7 @@ gate fails.  One invocation is one complete numerical seed, never a cell.
 """
 from __future__ import annotations
 
-import argparse, csv, importlib.util, json, math, platform, subprocess
+import argparse, csv, importlib.util, json, math, os, platform, subprocess, tempfile, time
 from pathlib import Path
 
 import torch
@@ -25,9 +25,53 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
-    if not rows:
-        path.write_text(""); return
-    with path.open("w", newline="") as f:
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    with os.fdopen(fd, "w", newline="") as f:
+        if rows:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+            writer.writeheader(); writer.writerows(rows)
+    os.replace(temporary, path)
+
+
+def write_json(path: Path, payload: dict) -> None:
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    with os.fdopen(fd, "w") as f:
+        json.dump(payload, f, indent=2, sort_keys=True); f.write("\n")
+    os.replace(temporary, path)
+
+
+def atomic_torch_save(payload: dict, path: Path) -> None:
+    temporary = path.with_name(f".{path.name}.tmp")
+    torch.save(payload, temporary)
+    os.replace(temporary, path)
+
+
+class DriveLiveSync:
+    """Path-B update-only transport for pre-created CE-P1 placeholders."""
+    def __init__(self, prefix: str):
+        self.prefix = prefix
+        if os.environ.get("CE_P1_GDRIVE_LIVE") != "1":
+            raise RuntimeError("CE-P1 HARD STOP: CE_P1_GDRIVE_LIVE=1 is required on Colab")
+        from pydrive2.auth import GoogleAuth
+        from pydrive2.drive import GoogleDrive
+        from oauth2client.service_account import ServiceAccountCredentials
+        key = os.environ.get("CE_P1_GDRIVE_SA_KEY", "/content/sa.json")
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(key, ["https://www.googleapis.com/auth/drive"])
+        auth = GoogleAuth(); auth.credentials = credentials; self.drive = GoogleDrive(auth)
+        def folder(name, parent=None):
+            query = f"title='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+            if parent: query += f" and '{parent}' in parents"
+            rows = self.drive.ListFile({"q": query}).GetList()
+            if not rows: raise RuntimeError(f"CE-P1 HARD STOP: Drive folder missing: {name}")
+            return rows[0]["id"]
+        self.exchange = folder("exchange", folder("copeland-erdos-nets_drive", folder("research", folder("agent-rules-tree-control"))))
+
+    def update(self, filename: str, local_path: Path) -> None:
+        rows = self.drive.ListFile({"q": f"title='{filename}' and '{self.exchange}' in parents and trashed=false"}).GetList()
+        if len(rows) != 1:
+            raise RuntimeError(f"CE-P1 HARD STOP: expected one pre-created Drive placeholder {filename}, got {len(rows)}")
+        remote = self.drive.CreateFile({"id": rows[0]["id"]})
+        remote.SetContentFile(str(local_path)); remote.Upload()
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader(); writer.writerows(rows)
 
@@ -53,7 +97,7 @@ def assert_runtime(freeze: dict, out: Path) -> None:
         raise SystemExit(f"CE-P1 RUNTIME HARD STOP: {mismatch}")
 
 
-def train_condition(model, condition, splits, permutations, batch_size, train_drop_last, device, cfg, out, seed):
+def train_condition(model, condition, splits, permutations, batch_size, train_drop_last, device, cfg, out, seed, on_epoch):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=float(cfg["training"]["lr"]), weight_decay=float(cfg["training"]["weight_decay"]))
     validation = DataLoader(splits["validation"], batch_size=batch_size, shuffle=False, drop_last=bool(cfg["data"]["val_drop_last"]))
@@ -84,8 +128,10 @@ def train_condition(model, condition, splits, permutations, batch_size, train_dr
         curves.append({"seed": seed, "condition": condition, "epoch": epoch, "train_loss": train_loss, "val_loss": val_loss, "val_ppl": math.exp(min(val_loss, 20))})
         if val_loss < best_loss:
             best_loss, best_epoch = val_loss, epoch
-            torch.save({"model": model.state_dict(), "epoch": epoch, "val_loss": val_loss}, checkpoint)
+        atomic_torch_save({"model": model.state_dict(), "optimizer": optimizer.state_dict(), "epoch": epoch,
+                           "best_loss": best_loss, "best_epoch": best_epoch, "final_loss": val_loss}, checkpoint)
         final_loss = val_loss
+        on_epoch(condition, epoch, curves, checkpoint)
         print(f"[ce-p1] {condition} ep{epoch}/{len(permutations)} val={val_loss:.5f}", flush=True)
     model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=False)["model"])
     model.eval(); test_total, test_count = 0.0, 0
@@ -107,6 +153,8 @@ def main() -> None:
         raise SystemExit(f"CE-P1 HARD STOP: seed {args.seed} is not authorized by this config")
     if tuple(cfg["experiment"]["conditions"]) != CONDITIONS:
         raise SystemExit("CE-P1 HARD STOP: condition set differs from DS binding")
+    prefix = os.environ.get("CE_P1_GDRIVE_PREFIX", f"ce_p1_{cfg['experiment']['mode']}_seed_{args.seed}")
+    sync = DriveLiveSync(prefix)
     assert_runtime(cfg["runtime_freeze"], out)
     conf = load_confirmation_module(); device = conf.resolve_device(cfg["training"]["device"])
     conf.write_environment(out / "environment.txt", device)
@@ -149,15 +197,30 @@ def main() -> None:
     (out / "base_state_sha256.txt").write_text(hashlib_sha256_state(base))
     (out / "resolved_config.json").write_text(json.dumps(cfg, indent=2, sort_keys=True) + "\n")
     (out / "dataset_manifest.json").write_text(json.dumps(dataset_manifest, indent=2, sort_keys=True) + "\n")
+    def publish(status, current_condition, epoch=0):
+        state = {"experiment": cfg["experiment"]["name"], "mode": cfg["experiment"]["mode"], "seed": args.seed,
+                 "status": status, "current_condition": current_condition, "epoch": epoch,
+                 "updated_unix": time.time(), "branch_sha": os.environ.get("CE_GIT_SHA", "")}
+        write_json(out / "run_state.json", state)
+        sync.update(f"{prefix}_state.json", out / "run_state.json")
+        if (out / "learning_curves.csv").exists(): sync.update(f"{prefix}_live.csv", out / "learning_curves.csv")
     if not all(value for _, value in gates):
         (out / "SEED_STATUS.txt").write_text("EVIDENCE_INCOMPLETE_PARITY_FAILURE\n")
+        publish("parity_failed", "")
         raise SystemExit(f"CE-P1 HARD STOP: {[gate for gate, value in gates if not value]}")
+    publish("parity_passed", "")
     metrics, curves = [], []
+    def on_epoch(condition, epoch, partial_curves, checkpoint):
+        write_csv(out / "learning_curves.csv", curves + partial_curves)
+        sync.update(f"{prefix}_checkpoint_{condition}.pt", checkpoint)
+        publish("running", condition, epoch)
     for condition in CONDITIONS:
-        result, condition_curves = train_condition(models[condition].to(device), condition, splits, permutations, batch_size, bool(cfg["data"]["train_drop_last"]), device, cfg, out, args.seed)
+        result, condition_curves = train_condition(models[condition].to(device), condition, splits, permutations, batch_size, bool(cfg["data"]["train_drop_last"]), device, cfg, out, args.seed, on_epoch)
         metrics.append(result); curves.extend(condition_curves)
         write_csv(out / "per_seed.csv", metrics); write_csv(out / "learning_curves.csv", curves)
+        publish("running", condition, epochs)
     (out / "SEED_STATUS.txt").write_text(f"{cfg['experiment']['mode'].upper()} seed={args.seed} conditions=3\n")
+    publish("completed", "", epochs)
 
 
 def hashlib_sha256_state(model) -> str:
