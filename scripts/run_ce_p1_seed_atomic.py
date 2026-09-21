@@ -6,7 +6,7 @@ gate fails.  One invocation is one complete numerical seed, never a cell.
 """
 from __future__ import annotations
 
-import argparse, csv, importlib.util, json, math
+import argparse, csv, importlib.util, json, math, platform, subprocess
 from pathlib import Path
 
 import torch
@@ -38,6 +38,19 @@ def load_confirmation_module():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def assert_runtime(freeze: dict, out: Path) -> None:
+    import datasets, numpy, transformers
+    try:
+        driver = subprocess.check_output(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"], text=True).strip().splitlines()[0]
+    except Exception:
+        driver = "unavailable"
+    actual = {"gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu", "python": platform.python_version(), "torch": torch.__version__, "cuda": torch.version.cuda or "none", "numpy": numpy.__version__, "datasets": datasets.__version__, "transformers": transformers.__version__, "driver": driver}
+    mismatch = [key for key in freeze if str(actual.get(key)) != str(freeze[key]) and not (key == "gpu" and str(freeze[key]) in str(actual.get(key, "")))]
+    (out / "runtime_assertion.log").write_text(f"target {json.dumps(freeze, sort_keys=True)}\nactual {json.dumps(actual, sort_keys=True)}\nmismatch={mismatch}\n")
+    if mismatch:
+        raise SystemExit(f"CE-P1 RUNTIME HARD STOP: {mismatch}")
 
 
 def train_condition(model, condition, splits, permutations, batch_size, train_drop_last, device, cfg, out, seed):
@@ -94,6 +107,7 @@ def main() -> None:
         raise SystemExit(f"CE-P1 HARD STOP: seed {args.seed} is not authorized by this config")
     if tuple(cfg["experiment"]["conditions"]) != CONDITIONS:
         raise SystemExit("CE-P1 HARD STOP: condition set differs from DS binding")
+    assert_runtime(cfg["runtime_freeze"], out)
     conf = load_confirmation_module(); device = conf.resolve_device(cfg["training"]["device"])
     conf.write_environment(out / "environment.txt", device)
     splits, vocab, dataset_manifest = conf.load_wikitext_splits(cfg["data"])
