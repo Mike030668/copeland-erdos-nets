@@ -104,7 +104,8 @@ def train_condition(model, condition, splits, permutations, batch_size, train_dr
     test = DataLoader(splits["test"], batch_size=batch_size, shuffle=False, drop_last=bool(cfg["data"]["test_drop_last"]))
     helpers = load_confirmation_module()
     best_loss, best_epoch, final_loss = math.inf, 0, math.inf
-    checkpoint = out / "checkpoints" / f"{condition}_seed{seed}_best.pt"
+    best_checkpoint = out / "checkpoints" / f"{condition}_seed{seed}_best.pt"
+    resume_checkpoint = out / "checkpoints" / f"{condition}_seed{seed}_resume.pt"
     curves = []
     for epoch, order in enumerate(permutations, 1):
         usable = order[:(len(order) // batch_size) * batch_size] if train_drop_last else order
@@ -128,12 +129,13 @@ def train_condition(model, condition, splits, permutations, batch_size, train_dr
         curves.append({"seed": seed, "condition": condition, "epoch": epoch, "train_loss": train_loss, "val_loss": val_loss, "val_ppl": math.exp(min(val_loss, 20))})
         if val_loss < best_loss:
             best_loss, best_epoch = val_loss, epoch
+            atomic_torch_save({"model": model.state_dict(), "epoch": epoch, "val_loss": val_loss}, best_checkpoint)
         atomic_torch_save({"model": model.state_dict(), "optimizer": optimizer.state_dict(), "epoch": epoch,
-                           "best_loss": best_loss, "best_epoch": best_epoch, "final_loss": val_loss}, checkpoint)
+                           "best_loss": best_loss, "best_epoch": best_epoch, "final_loss": val_loss}, resume_checkpoint)
         final_loss = val_loss
-        on_epoch(condition, epoch, curves, checkpoint)
+        on_epoch(condition, epoch, curves, resume_checkpoint)
         print(f"[ce-p1] {condition} ep{epoch}/{len(permutations)} val={val_loss:.5f}", flush=True)
-    model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=False)["model"])
+    model.load_state_dict(torch.load(best_checkpoint, map_location=device, weights_only=False)["model"])
     model.eval(); test_total, test_count = 0.0, 0
     with torch.no_grad():
         for x, y in test:
@@ -141,7 +143,7 @@ def train_condition(model, condition, splits, permutations, batch_size, train_dr
             logits = model(x)
             loss = criterion(logits.view(-1, logits.size(-1)), y.view(-1))
             test_total += float(loss.item()) * x.size(0); test_count += x.size(0)
-    return {"seed": seed, "condition": condition, "best_epoch": best_epoch, "best_val_ppl": math.exp(min(best_loss, 20)), "final_val_ppl": math.exp(min(final_loss, 20)), "test_ppl": math.exp(min(test_total / max(test_count, 1), 20)), "checkpoint": str(checkpoint)}, curves
+    return {"seed": seed, "condition": condition, "best_epoch": best_epoch, "best_val_ppl": math.exp(min(best_loss, 20)), "final_val_ppl": math.exp(min(final_loss, 20)), "test_ppl": math.exp(min(test_total / max(test_count, 1), 20)), "checkpoint": str(best_checkpoint)}, curves
 
 
 def main() -> None:
