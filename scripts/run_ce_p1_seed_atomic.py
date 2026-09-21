@@ -72,8 +72,6 @@ class DriveLiveSync:
             raise RuntimeError(f"CE-P1 HARD STOP: expected one pre-created Drive placeholder {filename}, got {len(rows)}")
         remote = self.drive.CreateFile({"id": rows[0]["id"]})
         remote.SetContentFile(str(local_path)); remote.Upload()
-        writer = csv.DictWriter(f, fieldnames=list(rows[0]))
-        writer.writeheader(); writer.writerows(rows)
 
 
 def load_confirmation_module():
