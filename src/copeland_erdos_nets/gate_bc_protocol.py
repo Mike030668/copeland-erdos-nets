@@ -1,4 +1,4 @@
-"""Gate B+C primitives. Canonical execution is deliberately not authorized.
+"""Gate B+C primitives. Canonical GPU release remains DS-owned.
 
 DS GATE_BC_DESIGN_DS_REVIEW.md, 2026-10-07, is the binding protocol.
 All diagnostics below are detached reads; alpha is a fixed Python scalar.
@@ -189,5 +189,12 @@ def atomic_checkpoint(path, value):
 
 
 def execution_gate(seed, mode, epochs):
-    if mode != "smoke" or seed != SMOKE_SEED or epochs != 1:
-        raise HardGateError("only NONCANONICAL_SMOKE seed1067, one epoch is authorized; canonical closed")
+    if not ((mode == "smoke" and seed == SMOKE_SEED and epochs == 1) or
+            (mode == "canonical" and seed in RESERVED_SEEDS and epochs == 15)):
+        raise HardGateError("invalid seed/mode/epoch combination; smoke1067/1 or canonical67-71/15 only")
+
+
+def mode_label(mode):
+    if mode not in ("smoke", "canonical"):
+        raise HardGateError("invalid execution mode")
+    return "CANONICAL" if mode == "canonical" else "NONCANONICAL_SMOKE"

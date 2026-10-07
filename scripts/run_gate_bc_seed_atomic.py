@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Authorized Gate BC NONCANONICAL_SMOKE runner; canonical remains fail-closed."""
+"""Gate BC seed-atomic runner. Canonical GPU execution requires DS SHA release."""
 from __future__ import annotations
 
 import argparse
@@ -25,7 +25,7 @@ from torch.utils.data import DataLoader
 from copeland_erdos_nets.gate_bc_protocol import (
     CONDITIONS, HardGateError, TokenScaleMixin, atomic_checkpoint, atomic_json,
     audit_cells, batch_schedule_receipt, construct_cells, epoch_telemetry,
-    execution_gate, gradient_stats, tensor_digest,
+    execution_gate, gradient_stats, tensor_digest, mode_label, RESERVED_SEEDS,
 )
 from copeland_erdos_nets.r010_protocol import (
     apply_attention_intervention, attention_allowlist, build_base_state,
@@ -130,11 +130,23 @@ def structure_gate(actual, expected):
         raise HardGateError("data structure discrepancy STOP_FOR_DS")
 
 
-def config_gate(cfg):
+def config_gate(cfg, mode=None, seed=None):
     """Reject protocol-changing config edits before runtime/data/RNG activity."""
+    if mode is None:
+        mode = "canonical" if cfg.get("experiment", {}).get("mode") == "CANONICAL" else "smoke"
+    label = mode_label(mode)
+    epochs = 15 if mode == "canonical" else 1
+    experiment = cfg.get("experiment", {})
+    if experiment.get("mode") != label:
+        raise HardGateError("config/CLI mode mismatch")
+    if mode == "canonical":
+        if experiment.get("seeds") != list(RESERVED_SEEDS) or (seed is not None and seed not in RESERVED_SEEDS):
+            raise HardGateError("frozen canonical seed block discrepancy")
+    elif experiment.get("seed") != 1067 or (seed is not None and seed != 1067):
+        raise HardGateError("frozen smoke seed discrepancy")
     fixed = {
         "model": {"d_model": 128, "n_heads": 4, "d_ff": 512, "n_layers": 2},
-        "training": {"epochs": 1, "schedule_epochs": 15, "lr": 0.0005, "weight_decay": 0.01, "device": "cuda", "held_out_test": False},
+        "training": {"epochs": epochs, "schedule_epochs": 15, "lr": 0.0005, "weight_decay": 0.01, "device": "cuda", "held_out_test": mode == "canonical"},
         "rng_policy": {"seed_model_offset": 0, "seed_shuffle_offset": 20011, "seed_embedding_redraw_offset": 30013},
         "parity": {"rms_abs_strict": 1e-6, "cosine_min": 0.999999, "normalized_max_abs_diff_max": 1e-4, "matched_forward_rtol": 1e-6, "matched_forward_atol": 1e-7},
         "runtime_freeze": {"gpu": "Tesla T4", "python": "3.13.15", "torch": "2.11.0+cu128", "cuda": "12.8", "numpy": "2.1.3", "datasets": "4.0.0", "transformers": "5.15.1", "driver": "580.82.07"},
@@ -236,7 +248,18 @@ def train_epoch(model, optimizer, loader, device, telemetry_on, progress=None):
     return total/count, losses, epoch_telemetry(model, start, gradients) if telemetry_on else None
 
 
-def train_cell(model, condition, splits, perms, cfg, out, seed, device, live, update_state, drive, attempt_id, source_sha):
+def held_out_endpoint(model, loader, device):
+    """Single selected-checkpoint evaluation; never part of validation selection."""
+    loss = validation_loss(model, loader, device)
+    if not math.isfinite(loss):
+        raise HardGateError("nonfinite held-out loss")
+    return {"test_loss": loss, "test_ppl": math.exp(loss)}
+
+
+def train_cell(model, condition, splits, perms, cfg, out, seed, device, live, update_state, drive, attempt_id, source_sha, mode="smoke"):
+    label = mode_label(mode)
+    if cfg["training"]["epochs"] != (15 if mode == "canonical" else 1):
+        raise HardGateError("mode epoch contract discrepancy")
     conf = load_conf()
     bs = cfg["data"]["batch_size"]
     val = DataLoader(splits["validation"], batch_size=bs, shuffle=False, drop_last=True)
@@ -258,14 +281,14 @@ def train_cell(model, condition, splits, perms, cfg, out, seed, device, live, up
             best, best_epoch = vl, epoch
             atomic_checkpoint(best_path, {"model": model.state_dict(), "alpha": model.token_alpha,
                               "condition": condition, "seed": seed, "epoch": epoch, "validation_loss": vl,
-                              "attempt_id": attempt_id, "source_sha": source_sha})
+                              "attempt_id": attempt_id, "source_sha": source_sha, "status": label})
             if drive:
                 drive.upload(best_path, "_best_"+condition+".pt")
         atomic_checkpoint(current_path, {"model": model.state_dict(), "optimizer": optimizer.state_dict(),
                           "rng": rng_state(), "alpha": model.token_alpha, "epoch": epoch,
                           "condition": condition, "seed": seed, "best_epoch": best_epoch,
                           "attempt_id": attempt_id, "source_sha": source_sha,
-                          "best_validation_loss": best, "status": "NONCANONICAL_SMOKE",
+                          "best_validation_loss": best, "status": label,
                           "resume_policy": "same-live-VM-only; VM death requires whole fresh seed"})
         if drive:
             drive.upload(current_path, "_checkpoint_"+condition+".pt")
@@ -273,18 +296,25 @@ def train_cell(model, condition, splits, perms, cfg, out, seed, device, live, up
                      "actual_batch_order_sha256": hash_int_sequence(used),
                      "train_loss": train, "validation_loss": vl, "validation_ppl": math.exp(min(vl, 20)),
                      **diag, "best_epoch": best_epoch, "is_best": improved,
-                     "is_final": epoch==cfg["training"]["epochs"], "status": "NONCANONICAL_SMOKE"})
+                     "is_final": epoch==cfg["training"]["epochs"], "status": label})
         write_csv(out/"live.csv", live)
         update_state("running", condition, epoch)
         if drive:
             drive.upload(out/"live.csv", "_live.csv")
-        print(f"NONCANONICAL_SMOKE {condition} epoch={epoch} complete", flush=True)
-    # No held-out-test loader/evaluation or condition contrast in smoke.
+        print(f"{label} {condition} epoch={epoch} complete", flush=True)
+    endpoint = {}
+    if mode == "canonical":
+        selected = torch.load(best_path, map_location=device, weights_only=True)
+        model.load_state_dict(selected["model"])
+        model.token_alpha = selected["alpha"]
+        test = DataLoader(splits["test"], batch_size=bs, shuffle=False, drop_last=False)
+        endpoint = held_out_endpoint(model, test, device)
+    # Smoke never constructs/accesses a held-out loader; no cross-cell contrasts.
     return {"condition": condition, "seed": seed, "best_epoch": best_epoch,
             "selected_checkpoint_sha256": sha_file(best_path), "current_checkpoint_sha256": sha_file(current_path),
             "selected_checkpoint_bytes": best_path.stat().st_size, "current_checkpoint_bytes": current_path.stat().st_size,
             "attempt_id": attempt_id, "source_sha": source_sha,
-            "test_evaluations": 0, "status": "NONCANONICAL_SMOKE"}
+            "test_evaluations": int(mode == "canonical"), "status": label, **endpoint}
 
 
 def main():
@@ -298,7 +328,8 @@ def main():
     cfg = json.loads(Path(args.config).read_text())
     # Before imports/data/model/RNG manipulation: close all canonical routes.
     execution_gate(args.seed, args.mode, cfg["training"]["epochs"])
-    config_gate(cfg)
+    config_gate(cfg, args.mode, args.seed)
+    label = mode_label(args.mode)
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
     if (out/"attempt.json").exists():
@@ -308,26 +339,26 @@ def main():
     drive = None
     branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=ROOT, text=True).strip() if (ROOT/".git").exists() else os.environ.get("GATE_BC_SOURCE_BRANCH", "UNEXPOSED")
     source_sha = os.environ.get("GATE_BC_SOURCE_SHA", os.environ.get("CE_GIT_SHA", "UNEXPOSED"))
-    atomic_json(out/"attempt.json", {"attempt_id": attempt, "seed": args.seed, "mode": "NONCANONICAL_SMOKE",
+    atomic_json(out/"attempt.json", {"attempt_id": attempt, "seed": args.seed, "mode": label,
                 "branch": branch, "source_sha": source_sha, "host": platform.node(),
                 "session": os.environ.get("GATE_BC_SESSION", "UNEXPOSED"), "started_unix": time.time(),
-                "canonical_seeds": "67-71 RESERVED_UNTOUCHED", "cross_vm_resume": "FORBIDDEN"})
+                "canonical_seeds": "67-71 FROZEN_BLOCK" if args.mode == "canonical" else "67-71 RESERVED_UNTOUCHED", "cross_vm_resume": "FORBIDDEN"})
     atomic_json(out/"resolved_config.json", cfg)
     completed_conditions = []
     expected_steps = cfg["data"]["accepted_structure"]["n_train_chunks"]//cfg["data"]["batch_size"]
     def update_state(status, condition="", epoch=0, reason="", step=0, total_steps=None):
         atomic_json(out/"state.json", {"status": status, "condition": condition, "epoch": epoch,
                     "current_condition": condition, "condition_index": CONDITIONS.index(condition)+1 if condition in CONDITIONS else (5 if status=="completed" else 0),
-                    "total_conditions": 5, "total_epochs": 1, "schedule_epochs": 15,
+                    "total_conditions": 5, "total_epochs": cfg["training"]["epochs"], "schedule_epochs": 15,
                     "step": step, "total_steps": expected_steps if total_steps is None else total_steps, "completed_conditions": list(completed_conditions),
                     "completed_condition_count": len(completed_conditions), "remaining_conditions": 5-len(completed_conditions),
-                    "seed": args.seed, "attempt_id": attempt, "mode": "NONCANONICAL_SMOKE",
+                    "seed": args.seed, "attempt_id": attempt, "mode": label,
                     "source_sha": source_sha, "time_unix": time.time(), "reason": reason})
         if drive:
             drive.upload(out/"state.json", "_state.json")
     try:
         if os.environ.get("GATE_BC_DRIVE_LIVE") == "1":
-            drive = DriveUpdates(out, "gate_bc_smoke_seed_1067")
+            drive = DriveUpdates(out, f"gate_bc_seed_{args.seed}" if args.mode == "canonical" else "gate_bc_smoke_seed_1067")
         update_state("preflight")
         runtime_gate(cfg["runtime_freeze"], out)
         conf = load_conf()
@@ -343,7 +374,7 @@ def main():
         atomic_json(out/"optimizer_policy.json", {"class": "AdamW", "lr": 0.0005, "weight_decay": 0.01,
                     "betas": [0.9,0.999], "eps": 1e-8, "amsgrad": False, "AMP": False,
                     "scheduler": "NONE", "gradient_clipping": "NONE", "selection": "earliest strict validation improvement",
-                    "test_evaluation": "NONE_IN_SMOKE"})
+                    "test_evaluation": "ONCE_AT_VALIDATION_SELECTED_CHECKPOINT" if args.mode == "canonical" else "NONE_IN_SMOKE"})
         perms = epoch_index_permutations(len(splits["train"]), 15, seeds.seed_shuffle)
         batch = batch_schedule_receipt(perms, len(splits["train"]), cfg["data"]["batch_size"])
         write_csv(out/"batch_order_pre_gate.csv", batch)
@@ -373,15 +404,17 @@ def main():
         for condition in CONDITIONS:
             update_state("running", condition, 0)
             model = cells.pop(condition).to(device)
-            metrics.append(train_cell(model, condition, splits, perms, cfg, out, args.seed, device, live, update_state, drive, attempt, source_sha))
+            metrics.append(train_cell(model, condition, splits, perms, cfg, out, args.seed, device, live, update_state, drive, attempt, source_sha, args.mode))
             completed_conditions.append(condition)
-            update_state("running", condition, 1, step=expected_steps, total_steps=expected_steps)
+            update_state("running", condition, cfg["training"]["epochs"], step=expected_steps, total_steps=expected_steps)
             del model
             torch.cuda.empty_cache()
         write_csv(out/"checkpoint_manifest.csv", metrics)
-        atomic_json(out/"completion.json", {"status": "NONCANONICAL_SMOKE_COMPLETE", "conditions": list(CONDITIONS),
-                    "test_evaluations": 0, "scientific_contrasts": "NOT_COMPUTED", "canonical_seeds": "67-71 RESERVED_UNTOUCHED"})
-        update_state("completed", "", 1)
+        if args.mode == "canonical":
+            write_csv(out/"metrics.csv", metrics)
+        atomic_json(out/"completion.json", {"status": label + "_COMPLETE", "conditions": list(CONDITIONS),
+                    "test_evaluations": 5 if args.mode == "canonical" else 0, "scientific_contrasts": "NOT_COMPUTED", "canonical_seeds": "67-71 FROZEN_BLOCK" if args.mode == "canonical" else "67-71 RESERVED_UNTOUCHED"})
+        update_state("completed", "", cfg["training"]["epochs"])
     except BaseException as error:
         if hasattr(error, "receipts"):
             atomic_json(out/"parity_gates.json", error.receipts)

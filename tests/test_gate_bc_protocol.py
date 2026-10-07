@@ -114,7 +114,7 @@ def test_full15_schedule_before_optimization():
         batch_schedule_receipt(perms, 13, 3)
 
 
-@pytest.mark.parametrize("seed,mode,epochs", [(67,"canonical",15),(68,"smoke",1),(1067,"canonical",1),(1067,"smoke",15),(7,"smoke",1)])
+@pytest.mark.parametrize("seed,mode,epochs", [(67,"canonical",1),(68,"smoke",1),(1067,"canonical",1),(1067,"smoke",15),(7,"smoke",1)])
 def test_execution_authorization_failclosed_without_rng(seed, mode, epochs):
     before = torch.get_rng_state().clone()
     with pytest.raises(HardGateError):
