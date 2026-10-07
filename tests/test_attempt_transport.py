@@ -94,7 +94,7 @@ def test_mapped_failure_no_fallback_or_retry(transport, failure):
     assert len(refreshes)<=1 and actions.count('update')<=1 and actions.count('readback')<=1
 
 # Fixture imported rather than invoking any seed-specific scientific runner.
-from test_sa_drive_refresh import transport
+from tests.test_sa_drive_refresh import transport
 
 def test_main_science_ast_unchanged_except_isolated_transport_hook():
     import ast
