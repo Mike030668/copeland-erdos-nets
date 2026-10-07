@@ -25,10 +25,8 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest \
 Outcome: **65 passed, 1 failed**, one existing unregistered `slow` marker warning.
 Failure: `test_production_attention_hash_parity_seed42`, comparing current
 `blocks.0.attn.k_proj.weight` tensor construction with a historical local R010
-receipt. Expected SHA-256:
-`23aa55ec5ebe6a57ebad8baf90e41195a303cef99e16de1df1dff943d40d2ff`.
-Observed SHA-256:
-`d5cca842bdc1a805163c886e453087bb43d685bcf96e50abd36802ee88dc6628`.
+receipt. The independently constructed tensor did not match the recorded
+historical tensor digest; no replacement digest was written into evidence.
 
 The failure is recorded, not classified as a resolved runtime discrepancy.
 The current host is Python 3.12.3, Torch 2.12.1+cu130, NumPy 2.4.6; it is not
@@ -41,6 +39,8 @@ No accepted training run, accepted metric recomputation, checkpoint re-selection
 or new statistical analysis occurred. The inherited tests include small
 synthetic CPU training as code validation only. No GPU experiment was launched.
 No pre-commit configuration or project quality-gate script was present.
+Copied canonical CSVs preserve their original CRLF bytes. Git whitespace
+validation treats CR at end of line as retained source formatting.
 
 Final DS intake must evaluate the disclosed test failure and provenance gaps.
 This receipt does not declare Gate A PASS.
