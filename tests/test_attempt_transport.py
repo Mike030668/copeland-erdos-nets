@@ -66,17 +66,32 @@ def test_source_writers_share_manifest():
     assert 'drive.upload(out/"state.json", "_state.json")' in source
     assert 'update_state("EVIDENCE_INCOMPLETE"' in source
 
-def test_mapped_update_expiry_and_hash(transport):
+@pytest.mark.parametrize('expiry',['before_update','between_update_readback','failure_status'])
+def test_mapped_update_expiry_and_hash(transport, expiry):
     # Reuse the refresh fixture to exercise the real DriveUpdates.upload path.
     credentials,auth,updater,payload,refreshes,actions=transport
     m=manifest()
     m['targets']['_state.json']['id']='existing-target-id'
     updater.manifest=m
     updater.prefix=m['namespace']
-    credentials.expire_after_update=True
+    credentials.expire_after_update=expiry=='between_update_readback'
+    credentials.access_token_expired=expiry in ('before_update','failure_status')
     updater.upload(payload,'_state.json')
     assert actions==['update','readback'] and len(refreshes)==1
     assert updater.receipts[-1]['readback_pass']
+
+@pytest.mark.parametrize('failure',['refresh','permission','corrupt'])
+def test_mapped_failure_no_fallback_or_retry(transport, failure):
+    credentials,auth,updater,payload,refreshes,actions=transport
+    m=manifest()
+    m['targets']['_state.json']['id']='existing-target-id'
+    updater.manifest=m
+    updater.prefix=m['namespace']
+    if failure=='refresh':credentials.access_token_expired=credentials.fail_refresh=True
+    if failure=='permission':credentials.permission_error=True
+    if failure=='corrupt':credentials.corrupt=True
+    with pytest.raises((RuntimeError,PermissionError)):updater.upload(payload,'_state.json')
+    assert len(refreshes)<=1 and actions.count('update')<=1 and actions.count('readback')<=1
 
 # Fixture imported rather than invoking any seed-specific scientific runner.
 from test_sa_drive_refresh import transport
