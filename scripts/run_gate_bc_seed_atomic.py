@@ -163,11 +163,10 @@ def config_gate(cfg, mode=None, seed=None):
 class DriveUpdates:
     """Update exact existing placeholders only; verify every upload by readback."""
     def __init__(self, out, prefix):
-        from pydrive2.auth import GoogleAuth
         from pydrive2.drive import GoogleDrive
-        from oauth2client.service_account import ServiceAccountCredentials
-        ga = GoogleAuth()
-        ga.credentials = ServiceAccountCredentials.from_json_keyfile_name("/content/sa.json", ["https://www.googleapis.com/auth/drive"])
+        from copeland_erdos_nets.sa_drive_auth import ServiceAccountOnlyAuth
+        ga = ServiceAccountOnlyAuth("/content/sa.json")
+        self.auth = ga
         self.drive, self.out, self.prefix = GoogleDrive(ga), out, prefix
         parent = None
         for title in ("agent-rules-tree-control", "research", "copeland-erdos-nets_drive", "exchange"):
@@ -196,6 +195,10 @@ class DriveUpdates:
         verify.unlink()
         self.receipts.append({"file": title, "sha256": digest, "size": size, "readback_pass": passed, "time_unix": time.time()})
         atomic_json(self.out/"drive_durability.json", self.receipts)
+        atomic_json(self.out/"drive_auth_refresh.json", {
+            "principal": self.auth.principal, "auth_method": "service",
+            "user_oauth_fallback": "FORBIDDEN", "operation_retries": 0,
+            "refresh_events": self.auth.refresh_events})
         if not passed:
             raise HardGateError("Drive readback mismatch "+title)
 

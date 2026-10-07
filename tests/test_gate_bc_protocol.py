@@ -217,6 +217,8 @@ def test_drive_transport_verified_readback(tmp_path, tamper):
             return FakeFile()
     d = object.__new__(runner.DriveUpdates)
     d.drive, d.out, d.prefix, d.parent, d.receipts = FakeDrive(), tmp_path, "prefix", "parent", []
+    from types import SimpleNamespace
+    d.auth = SimpleNamespace(principal="same-sa", refresh_events=[])
     atomic_json(tmp_path/"state.json", {"status": "running"})
     if tamper:
         with pytest.raises(HardGateError, match="readback mismatch"):
