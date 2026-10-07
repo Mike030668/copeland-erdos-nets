@@ -1,0 +1,7 @@
+seed,retained_canonical_attempt,seed_status,conditions_complete,train_epochs,durable_checkpoint_count,all_16_parity_gates_pass
+57,first_attempt,CANONICAL seed=57 conditions=3,3,15,3,true
+58,first_attempt,CANONICAL seed=58 conditions=3,3,15,3,true
+59,first_attempt,CANONICAL seed=59 conditions=3,3,15,3,true
+60,rerun_after_discarded_first_attempt,CANONICAL seed=60 conditions=3,3,15,3,true
+61,first_attempt,CANONICAL seed=61 conditions=3,3,15,3,true
+60,DISCARDED_first_attempt_2026-09-11,"NONCANONICAL_INTERRUPTED (connection dropped mid-training; retained evidence limited to one overwritten Drive exchange checkpoint placeholder, r014_ckpt_D_xavier_seed60.pt, timestamped 2026-09-11T21:54Z -- no per_seed.csv/checkpoint_manifest.csv/parity_summary.csv were ever written by this attempt, so none of this package's metrics originate from it)",1,"unknown (D_mid1/D_ctor never started; D_xavier's own epoch count within this discarded attempt cannot be established from retained evidence -- PROVENANCE GAP, not reconstructed)",0,not_applicable (attempt never reached a parity_summary.csv write)

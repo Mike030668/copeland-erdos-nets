@@ -1,0 +1,12 @@
+python=3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]
+platform=Linux-6.6.122+-x86_64-with-glibc2.35
+torch=2.11.0+cu128
+numpy=2.1.3
+datasets=4.0.0
+transformers=5.15.1
+cuda_available=True
+cuda_runtime=12.8
+gpu_model=Tesla T4
+driver_version=580.82.07
+device=cuda
+git_commit=unknown

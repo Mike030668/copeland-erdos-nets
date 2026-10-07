@@ -1,0 +1,14 @@
+series,attempt,disposition,reason_or_retained_limitation,source_reference
+R010,accepted_phase1,RETAINED,Accepted local paired block; historical environment retained,R010/manifests/run_manifest.csv and environment.txt
+R011,attempt_cross_vm_v1,EXCLUDED,Within-seed attention parity failed across recycled VMs; diagnostic only; never pooled with v2,Accepted attempt_lineage.md and DS review
+R011,attempt_seed_atomic_v2,RETAINED,Complete one-VM four-cell blocks seeds42-46; runtime and source/checkpoint limitations retained,R011/manifests/seed_block_manifest.csv
+R011,seed42_partial_attempts,EXCLUDED,One recycled partial attempt; whole seed redone,Accepted execution_events.md
+R011,seed43_partial_attempts,EXCLUDED,Two recycled partial attempts; whole seed redone,Accepted execution_events.md
+R011,seed45_partial_attempts,EXCLUDED,One recycled partial attempt; whole seed redone,Accepted execution_events.md
+R011,seed46_partial_attempts,EXCLUDED,One recycled partial attempt; whole seed redone,Accepted execution_events.md
+R012,accepted_canonical_blocks,RETAINED,One retained complete block per seed47-51; operational VM identity limitation retained,R012/manifests/seed_block_manifest.csv
+R012,aborted_recycled_attempts,EXCLUDED,Historical max observed attempts 47:2 48:2 49:4 50:3 51:8; partial blocks not pooled; not immutable per-attempt IDs,Accepted execution_events.md
+R013,canonical_retained_blocks,RETAINED,Only accepted complete seed blocks52-56,R013/manifests/seed_block_manifest.csv
+R014,package_v1,SUPERSEDED_PACKAGE,Raw scientific evidence retained byte-identically by v2; provenance-only repair,Accepted R014 DS review and v2 provenance_manifest_origins.csv
+R014,seed60_first_attempt,EXCLUDED,Interrupted; no terminal result; unknown epoch count; whole seed rerun,R014/manifests/seed_block_manifest.csv
+R014,canonical_retained_blocks,RETAINED,Seeds57-61 complete including fresh seed60 rerun,R014/manifests/seed_block_manifest.csv

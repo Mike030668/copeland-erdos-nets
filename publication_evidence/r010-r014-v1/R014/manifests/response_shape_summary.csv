@@ -1,0 +1,6 @@
+seed,test_ppl_by_dose,shape_class,total_range_D_xavier_to_D_ctor
+57,D_xavier=200.78;D_mid1=205.36;D_ctor=235.85,MONOTONIC_INCREASING,-35.0615
+58,D_xavier=202.49;D_mid1=205.07;D_ctor=235.32,MONOTONIC_INCREASING,-32.8235
+59,D_xavier=198.81;D_mid1=205.24;D_ctor=233.12,MONOTONIC_INCREASING,-34.3048
+60,D_xavier=199.77;D_mid1=204.51;D_ctor=238.24,MONOTONIC_INCREASING,-38.4693
+61,D_xavier=199.76;D_mid1=206.86;D_ctor=232.82,MONOTONIC_INCREASING,-33.062

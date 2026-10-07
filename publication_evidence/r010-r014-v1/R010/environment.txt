@@ -1,0 +1,12 @@
+python=3.12.3 (main, Jan 22 2026, 20:57:42) [GCC 13.3.0]
+platform=Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+torch=2.12.1+cu130
+numpy=2.4.6
+datasets=5.0.1
+transformers=5.15.1
+cuda_available=True
+cuda_runtime=13.0
+gpu_model=NVIDIA GeForce RTX 5080 Laptop GPU
+driver_version=unavailable
+device=cuda
+git_commit=9b1e42b2f20ce9756e8495c50f94c000ed0b4b50

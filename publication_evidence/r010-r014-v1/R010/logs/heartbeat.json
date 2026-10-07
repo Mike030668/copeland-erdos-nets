@@ -1,0 +1,12 @@
+{
+  "job_id": "r010_confirmation",
+  "status": "complete",
+  "progress": "20/20",
+  "progress_pct": 100.0,
+  "current_phase": "done",
+  "host": "DESKTOP-89J2LKK",
+  "last_heartbeat": "2026-08-26T08:12:12.208074+00:00",
+  "pid": 15811,
+  "gpu_temp": 0,
+  "cpu_temp": 0
+}

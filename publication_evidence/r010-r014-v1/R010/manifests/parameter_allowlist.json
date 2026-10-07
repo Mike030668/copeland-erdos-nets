@@ -1,0 +1,12 @@
+{
+  "allowlist": [
+    "blocks.0.attn.k_proj.weight",
+    "blocks.0.attn.out_proj.weight",
+    "blocks.0.attn.q_proj.weight",
+    "blocks.0.attn.v_proj.weight",
+    "blocks.1.attn.k_proj.weight",
+    "blocks.1.attn.out_proj.weight",
+    "blocks.1.attn.q_proj.weight",
+    "blocks.1.attn.v_proj.weight"
+  ]
+}

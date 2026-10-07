@@ -1,0 +1,246 @@
+{
+  "artifact": "P5 manuscript bounded repair package",
+  "version": "paper_post_R014_v0_2",
+  "project": "copeland-erdos-nets / paper_track",
+  "status": "P5_v0_2_REVALIDATION_READY",
+  "generated_last": true,
+  "manifest_self_excluded": true,
+  "file_count_excluding_manifest": 44,
+  "audit": {
+    "table_generator": "PASS",
+    "canonical_checks": 21,
+    "fail_closed": true
+  },
+  "constraints": {
+    "new_experiments_run": false,
+    "R015_R016_opened": false,
+    "accepted_results_changed": false,
+    "scientific_classifications_changed": false,
+    "paper_post_R014_v0_1_modified": false,
+    "frozen_old_manuscript_modified": false,
+    "expert_review_modified": false,
+    "pre_submission_review_declared_ready": false
+  },
+  "files": [
+    {
+      "path": "BIBLIOGRAPHY_v0_2.md",
+      "size": 4282,
+      "sha256": "1e55ed7233b815ac656c64dbab12b45915577f546f6bf4286314d6d91e0712bf"
+    },
+    {
+      "path": "FIGURE_BINDING_MANIFEST.csv",
+      "size": 2060,
+      "sha256": "e6ab2ec96d23bef0602e8f9b36662c32e811916ae333b885aadf5cdf925b3ff5"
+    },
+    {
+      "path": "MANUSCRIPT_EVIDENCE_BINDINGS_R010_R014.md",
+      "size": 4267,
+      "sha256": "5456d36822b02e15042283efb735a4fbf07e4928d7db611e4514aeb3e189c523"
+    },
+    {
+      "path": "PAPER_REVISION_CHANGELOG.md",
+      "size": 6957,
+      "sha256": "308cd1b919c52ea9539a990a19002e6a321430f29db71884fe337b1a62ecb084"
+    },
+    {
+      "path": "canonical_inputs/R010/paired_differences.csv",
+      "size": 2355,
+      "sha256": "ac40565617c370f86d92211c730373fadccb204f7322ab41cfc0685a6c19d8e9"
+    },
+    {
+      "path": "canonical_inputs/R010/per_seed.csv",
+      "size": 3129,
+      "sha256": "70995563095dcc233ad5a510738d5435562c519a1bedfeca1ef3207eaa0f5521"
+    },
+    {
+      "path": "canonical_inputs/R010/summary.csv",
+      "size": 325,
+      "sha256": "832c074fdad6862fc810e4aca2ac7cd88e41954b99a324336a1092e9d076e1d5"
+    },
+    {
+      "path": "canonical_inputs/R011/factorial_contrasts.csv",
+      "size": 519,
+      "sha256": "931740713b5548cd4149584342fcbdf9414c711b48da67cb9af4259be74db2ce"
+    },
+    {
+      "path": "canonical_inputs/R011/factorial_summary.csv",
+      "size": 227,
+      "sha256": "62c236f581d947928a14f178c9adbaae9997a8d780be858c96d9e02c9cf86466"
+    },
+    {
+      "path": "canonical_inputs/R011/per_seed.csv",
+      "size": 1935,
+      "sha256": "d83804f2cc396bb6c1c08bb5e0a8a824b87d8cb00b9e58206b0763f29ec9f19a"
+    },
+    {
+      "path": "canonical_inputs/R012/factorial_contrasts.csv",
+      "size": 550,
+      "sha256": "6d1c363e299ee7eea9e52b8ec3cdeffa1de2d83e1eb0ccf9b6fd2f26679d997d"
+    },
+    {
+      "path": "canonical_inputs/R012/factorial_summary.csv",
+      "size": 256,
+      "sha256": "5584218dd4167c53da8976522a799da87d8c40764c1688f1590990fc8894d205"
+    },
+    {
+      "path": "canonical_inputs/R012/per_seed.csv",
+      "size": 1378,
+      "sha256": "7bc7b428efa2cb251954890a18ff9e81a687f5dadbccc125b3eb1f77c56b8d2b"
+    },
+    {
+      "path": "canonical_inputs/R013/dose_summary.csv",
+      "size": 564,
+      "sha256": "d2b5883bea6619672148cf26439d51e54caea3f30bc82ea4f3d060d5f70afd0a"
+    },
+    {
+      "path": "canonical_inputs/R013/paired_contrasts.csv",
+      "size": 1531,
+      "sha256": "4add3e154159c279e05a71352af07fff3ca78257bba40e9e20ef5db12d5f2e64"
+    },
+    {
+      "path": "canonical_inputs/R013/paired_contrasts_summary.csv",
+      "size": 458,
+      "sha256": "89e322b11b6e94c0cf4879a99205f97c7d2e8da51ba3ff5171f31a31a0da78db"
+    },
+    {
+      "path": "canonical_inputs/R013/per_seed.csv",
+      "size": 2286,
+      "sha256": "72e4b649b663f5bee6afb0e6016ea37f3a3791289f1c4134df2905bca308e8fb"
+    },
+    {
+      "path": "canonical_inputs/R013/scale_ladder.csv",
+      "size": 588,
+      "sha256": "67ca39fdfaa99e80314026eedd61ffd406553875547cf8cfa0d1a3f149648eb4"
+    },
+    {
+      "path": "canonical_inputs/R014/dose_summary.csv",
+      "size": 406,
+      "sha256": "af41ea244e96b91a649674a6edaa49f1fb65d45850bd822c402b2757aa81bc45"
+    },
+    {
+      "path": "canonical_inputs/R014/paired_contrasts.csv",
+      "size": 687,
+      "sha256": "aba573d147786b1fd3c9ecefd19ed0b2a267a6be085241f4b3e25c798dfaf2b0"
+    },
+    {
+      "path": "canonical_inputs/R014/paired_contrasts_summary.csv",
+      "size": 237,
+      "sha256": "36dd74c0570fb5688d3dde92060f1e505ca0302bf23877e60f4d32554e338832"
+    },
+    {
+      "path": "canonical_inputs/R014/per_seed.csv",
+      "size": 1405,
+      "sha256": "0c8ec15c2bccc25b483f32cc0b07ed4d53b0a07dfc119d9203f0a9e80a70548b"
+    },
+    {
+      "path": "canonical_inputs/R014/scale_ladder.csv",
+      "size": 367,
+      "sha256": "afd54743139595702abc89a67c8c6e8e33c17fc615de08d54a5c5c575b837a16"
+    },
+    {
+      "path": "generated_tables/AUDIT_REPORT.json",
+      "size": 758,
+      "sha256": "1fd5acb2cad031e81fff18e3adf299062ddebb03528a0b5dade81863c267041a"
+    },
+    {
+      "path": "generated_tables/table_1_experiment_map.md",
+      "size": 1138,
+      "sha256": "0f0aa2b3b1ed9c66f754b92ae8529a3fc6fcfcbaf279d5f66fbe2e36baa62617"
+    },
+    {
+      "path": "generated_tables/table_2_R010.md",
+      "size": 307,
+      "sha256": "f9e2bdd170fee6b7bf06e4360a6734d58850a647c9e7590b5c5e1bd9d1ed9395"
+    },
+    {
+      "path": "generated_tables/table_3_R011.md",
+      "size": 522,
+      "sha256": "d13f5f84e1e8452d7574f0a2092829450d81cfea182a99a4f5d73f248b83cfde"
+    },
+    {
+      "path": "generated_tables/table_4_R012.md",
+      "size": 414,
+      "sha256": "cf2b20e2231b77c55c7f7cdf82156846ecbd8f2d5e89f84f7996609750c7e356"
+    },
+    {
+      "path": "generated_tables/table_5_R013_doses.md",
+      "size": 874,
+      "sha256": "7d1fb751c3cac96c79fc23142caf201e4d4fd65265dbce73f3f70d6bf9dafc09"
+    },
+    {
+      "path": "generated_tables/table_6_R014_doses.md",
+      "size": 599,
+      "sha256": "0118c21043ec9c4c8931c8c963e81b18a17cdf3c9c8165d305ae72a76d28fec0"
+    },
+    {
+      "path": "generated_tables/table_7_reproducibility.md",
+      "size": 939,
+      "sha256": "81d38deaf87cc8ce10dcfe242eba628943b8bd1f11ea271a0deb01d5fad58a84"
+    },
+    {
+      "path": "manuscript_figures/fig01_causal_reconstruction.png",
+      "size": 47489,
+      "sha256": "d4258cce8c34ca8b404ef05a59ad285dd58cd246515a1efc3585970fdc6e3989"
+    },
+    {
+      "path": "manuscript_figures/fig02_R010_test_ppl.png",
+      "size": 59430,
+      "sha256": "236df719e3e80e436c8d346b82f92735f92946795f2918e4bae7e521a2c8a4fd"
+    },
+    {
+      "path": "manuscript_figures/fig03_R011_factorial_test_ppl.png",
+      "size": 21037,
+      "sha256": "79ffa9333ede65f15a9acad6bbf8530572e3d6e03f244abbd1932ed57187a9ee"
+    },
+    {
+      "path": "manuscript_figures/fig04_R012_factorial_test_ppl.png",
+      "size": 18761,
+      "sha256": "10eb1b1b60dc80c5932c6c1d34841e08ebc74aaa6f144f21935d2a30829acb46"
+    },
+    {
+      "path": "manuscript_figures/fig05_R013_dose_response_test_ppl.png",
+      "size": 53876,
+      "sha256": "c9b9d14243419a13fcd6ad783405db9bc094dda6dd6104e58a652d7cdeb30915"
+    },
+    {
+      "path": "manuscript_figures/fig06_R014_dose_response_test_ppl.png",
+      "size": 52527,
+      "sha256": "9aa424d0ede3123a0952439665ff38ed98778a07e5eb28d72575d1eee70a7b92"
+    },
+    {
+      "path": "manuscript_figures/fig07a_R013_embedding_rms_trajectory.png",
+      "size": 57651,
+      "sha256": "4830a1abf03eb6df86f148117258352c97f51e892d99511acb2756407e6e1b9b"
+    },
+    {
+      "path": "manuscript_figures/fig07b_R013_embedding_grad_l2_trajectory.png",
+      "size": 66202,
+      "sha256": "aa196cca73fa74e8f699d859ef4d6bdd9ed37ae347f858ee117a7443f7af6335"
+    },
+    {
+      "path": "manuscript_figures/fig07c_R014_best_epoch_by_dose.png",
+      "size": 46289,
+      "sha256": "e9b2fead8d2a3b2af93fd54b84bc4f70413133289b93ca0d3e1e5db208e65f4e"
+    },
+    {
+      "path": "manuscript_figures/fig07d_R014_final_vs_best_val_ppl.png",
+      "size": 49095,
+      "sha256": "60a3b4720c231d7f44ea1035267aed88749aab1ae755cc284406b2eccee4e88b"
+    },
+    {
+      "path": "paper_post_R014_v0_2.md",
+      "size": 37047,
+      "sha256": "e71edbe7e0c4a3d28af0d32a266234a8cad8e0c27b618d80b5e15525f6ca5c57"
+    },
+    {
+      "path": "scripts/generate_manuscript_figures.py",
+      "size": 1724,
+      "sha256": "b2e9a3849287250978635ff7a02b2e927a2188178ba6e1d0951c7f25b7ec01e0"
+    },
+    {
+      "path": "scripts/generate_manuscript_tables.py",
+      "size": 6320,
+      "sha256": "54274ee308701aec537a24a5477b9b85758914f9fd49dee58bd0400f3a4364d4"
+    }
+  ]
+}

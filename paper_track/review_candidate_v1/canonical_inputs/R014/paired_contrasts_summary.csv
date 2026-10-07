@@ -1,0 +1,4 @@
+contrast,n_seeds,mean_delta_test_ppl,ci95_lo,ci95_hi,ci_excludes_zero
+D_xavier_minus_D_ctor,5,-34.7442,-37.5676,-31.9208,true
+D_xavier_minus_D_mid1,5,-5.0831,-7.2794,-2.8868,true
+D_mid1_minus_D_ctor,5,-29.6611,-33.3032,-26.0191,true

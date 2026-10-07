@@ -1,0 +1,49 @@
+{
+  "data": {
+    "batch_size": 32,
+    "config_name": "wikitext-2-raw-v1",
+    "dataset": "Salesforce/wikitext",
+    "seq_len": 128,
+    "test_drop_last": false,
+    "tokenizer": "gpt2",
+    "train_drop_last": true,
+    "val_drop_last": true
+  },
+  "experiment": {
+    "methods": [
+      "xavier_g1.0",
+      "orthogonal",
+      "xavier_g1.2",
+      "ce_lcg"
+    ],
+    "mode": "confirmation",
+    "name": "R010_paired_attention_init_confirmation",
+    "primary_baseline": "xavier_g1.0",
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ]
+  },
+  "init": {
+    "ce_m": 8,
+    "ce_offset_blocks": 0
+  },
+  "model": {
+    "d_ff": 512,
+    "d_model": 128,
+    "n_heads": 4,
+    "n_layers": 2
+  },
+  "training": {
+    "cooldown_seconds": 15,
+    "cpu_thermal_threshold": 90,
+    "device": "auto",
+    "epochs": 15,
+    "lr": 0.0005,
+    "thermal_threshold": 78,
+    "weight_decay": 0.01
+  }
+}

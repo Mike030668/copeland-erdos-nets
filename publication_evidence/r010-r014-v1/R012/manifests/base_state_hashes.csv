@@ -1,0 +1,6 @@
+seed,tensor,sha256,note
+47,token_emb.weight(base_draw),6dbcb818c7a8320e8727b95c490f18fa45fad6cf9a5cd184ad9879a3c09a6da5,embedding base_state hash (retained). Full-model base_state hashing was not packaged; non-embedding invariance retained in unchanged_parameter_hashes.csv
+48,token_emb.weight(base_draw),ecf5cd88d2473e10d3977d61078d9f2b3f6a416e85c74a5659d3a3f57d1783af,embedding base_state hash (retained). Full-model base_state hashing was not packaged; non-embedding invariance retained in unchanged_parameter_hashes.csv
+49,token_emb.weight(base_draw),4a9bb0da6d3130293f2a01ad399ea95c0e30615371a4a4c031509811dcf12719,embedding base_state hash (retained). Full-model base_state hashing was not packaged; non-embedding invariance retained in unchanged_parameter_hashes.csv
+50,token_emb.weight(base_draw),52cf3a73c3d17d98f91919e203296cf1b76439d4e021080152d1d80b0bd696f4,embedding base_state hash (retained). Full-model base_state hashing was not packaged; non-embedding invariance retained in unchanged_parameter_hashes.csv
+51,token_emb.weight(base_draw),36bc5845d858c9c4335e31663e0be4b8de743b9808a977d626ae08b157fd9edc,embedding base_state hash (retained). Full-model base_state hashing was not packaged; non-embedding invariance retained in unchanged_parameter_hashes.csv

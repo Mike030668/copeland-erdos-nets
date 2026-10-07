@@ -1,0 +1,6 @@
+seed,status,cells,vm,gpu
+42,CANONICAL,4,336c98dc910b,Tesla T4
+43,CANONICAL,4,40e5b06d411e,Tesla T4
+44,CANONICAL,4,66c60a94f28a,Tesla T4
+45,CANONICAL,4,7068bc698c6a,Tesla T4
+46,CANONICAL,4,0d3e7ffe73db,Tesla T4

@@ -1,0 +1,2 @@
+CANONICAL_CANDIDATE
+seed-atomic rerun in progress; each seed 4 cells in one VM.

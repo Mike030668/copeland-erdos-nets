@@ -1,0 +1,6 @@
+seed,seed_status,is_canonical
+57,CANONICAL seed=57 conditions=3,True
+58,CANONICAL seed=58 conditions=3,True
+59,CANONICAL seed=59 conditions=3,True
+60,CANONICAL seed=60 conditions=3,True
+61,CANONICAL seed=61 conditions=3,True

@@ -1,0 +1,3 @@
+attempt,check,result,note
+cross_vm_v1,B_attn_within_seed,FAIL,cross-host orthogonal_ divergence
+seed_atomic_v2,all_7_point,PASS,per-seed one-VM

@@ -1,0 +1,4 @@
+dose,n_seeds,test_ppl_mean,test_ppl_ci_lo,test_ppl_ci_hi,test_ppl_sd,best_val_ppl_mean,best_val_ppl_ci_lo,best_val_ppl_ci_hi,best_epoch_mean,best_epoch_min,best_epoch_max
+D_xavier,5,200.3252,198.5897,202.0608,1.398,191.3102,189.5479,193.0726,4,4,4
+D_mid1,5,205.4083,204.3242,206.4924,0.8732,197.5704,196.5952,198.5456,4,4,4
+D_ctor,5,235.0694,232.3218,237.8171,2.2132,229.3272,227.0498,231.6046,4.2,4,5

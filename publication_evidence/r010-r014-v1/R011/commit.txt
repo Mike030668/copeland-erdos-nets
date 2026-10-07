@@ -1,0 +1,6 @@
+protocol/r011-embedding-factorial
+launch-side git HEAD at seed-atomic staging: f0e0ee8 (base) .. 5a61999 (final ops fixes)
+Seed-atomic runner introduced at 3da7317; daemon/supervisor fixes through bf26354/5a61999.
+NOTE: the VM-side environment.txt recorded git_commit=unknown (no git on the Colab VM;
+code was staged as a tarball, not cloned). Exact per-block commit is therefore the
+staged bundle, not a VM git rev. See source_bundle_sha256.txt for the demonstrable scope.

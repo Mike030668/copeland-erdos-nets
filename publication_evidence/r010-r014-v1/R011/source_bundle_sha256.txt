@@ -1,0 +1,15 @@
+STATUS: PARTIAL / NOT FULLY PERSISTED AT EXECUTION
+
+The seed-atomic supervisor staged src/ + scripts/ + configs/ + vm daemon into
+.tmp/ce_pkg_seed.tar.gz and computed a bundle SHA-256 per fire (BSHA), passed to
+the VM as CE_BUNDLE_SHA256; the VM daemon recomputed and HARD-STOPPED on mismatch
+(so every accepted block ran a bundle whose VM-side sha == launch-side sha).
+
+However, the per-seed package did NOT persist source_provenance.json (that field
+existed only in the earlier confirmation daemon, not the seed daemon). Therefore:
+- VM-side bundle-sha verification DID occur at runtime (via HARD-STOP gate),
+- but the exact bytes/sha are NOT recoverable from the frozen package.
+
+This gap is documented, not reconstructed. If DS requires demonstrable per-block
+bundle hashes, a re-run under the seed daemon patched to persist
+source_provenance.json would be needed (no rerun performed now).

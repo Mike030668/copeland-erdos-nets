@@ -1,0 +1,6 @@
+{
+  "historical_r009_config_vocab_size": 28996,
+  "note": "historical R009 configs/r009_scaleup.json declared vocab_size=28996 at commit 4619405, but that field was never consumed by the historical runner (tok.vocab_size always overrides it); effective historical + R014 runtime vocab is the GPT-2 tokenizer's, 50257.",
+  "r014_effective_vocab_size": 50257,
+  "vocab_source": "GPT2_TOKENIZER_RUNTIME_OVERRIDE"
+}

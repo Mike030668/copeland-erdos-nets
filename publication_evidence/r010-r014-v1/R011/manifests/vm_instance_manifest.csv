@@ -1,0 +1,6 @@
+seed,hostname,gpu,platform,torch
+42,336c98dc910b,Tesla T4,Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128
+43,40e5b06d411e,Tesla T4,Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128
+44,66c60a94f28a,Tesla T4,Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128
+45,7068bc698c6a,Tesla T4,Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128
+46,0d3e7ffe73db,Tesla T4,Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128

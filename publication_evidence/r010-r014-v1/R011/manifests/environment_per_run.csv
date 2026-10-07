@@ -1,0 +1,6 @@
+seed,python,platform,torch,numpy,datasets,transformers,cuda_available,cuda_runtime,gpu_model,driver_version,device,git_commit
+42,"3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128,2.1.3,4.0.0,5.15.1,True,12.8,Tesla T4,580.82.07,cuda,unknown
+43,"3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128,2.1.3,4.0.0,5.15.1,True,12.8,Tesla T4,580.82.07,cuda,unknown
+44,"3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128,2.1.3,4.0.0,5.15.1,True,12.8,Tesla T4,580.82.07,cuda,unknown
+45,"3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128,2.1.3,4.0.0,5.15.1,True,12.8,Tesla T4,580.82.07,cuda,unknown
+46,"3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",Linux-6.6.122+-x86_64-with-glibc2.35,2.11.0+cu128,2.1.3,4.0.0,5.15.1,True,12.8,Tesla T4,580.82.07,cuda,unknown

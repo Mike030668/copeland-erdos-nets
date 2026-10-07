@@ -1,0 +1,6 @@
+seed,test_ppl_by_dose,shape_class,total_range_D_below_to_D_ctor
+52,D_below=237.46;D_xavier=237.89;D_mid1=245.22;D_mid2=256.81;D_ctor=308.92,MONOTONIC_INCREASING,-71.4576
+53,D_below=236.72;D_xavier=236.62;D_mid1=246.49;D_mid2=259.52;D_ctor=313.25,NON_MONOTONIC,-76.5247
+54,D_below=235.48;D_xavier=236.80;D_mid1=245.15;D_mid2=264.16;D_ctor=316.88,MONOTONIC_INCREASING,-81.4047
+55,D_below=238.69;D_xavier=238.92;D_mid1=244.82;D_mid2=260.23;D_ctor=312.43,MONOTONIC_INCREASING,-73.7406
+56,D_below=238.99;D_xavier=238.68;D_mid1=248.32;D_mid2=259.81;D_ctor=312.31,NON_MONOTONIC,-73.3252

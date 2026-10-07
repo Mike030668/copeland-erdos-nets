@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "checks": [
+    "R010 orthogonal: PASS",
+    "R010 xavier_g1.2: PASS",
+    "R010 ce_lcg: PASS",
+    "R011 E_B0: PASS",
+    "R011 E_B1: PASS",
+    "R011 B_A0: PASS",
+    "R011 B_A1: PASS",
+    "R011 I: PASS",
+    "R012 scale_D0: PASS",
+    "R012 scale_D1: PASS",
+    "R012 redraw_S0: PASS",
+    "R012 redraw_S1: PASS",
+    "R012 interaction: PASS",
+    "R013 D_below_minus_D_xavier: PASS",
+    "R013 D_xavier_minus_D_mid1: PASS",
+    "R013 D_mid1_minus_D_mid2: PASS",
+    "R013 D_mid2_minus_D_ctor: PASS",
+    "R013 D_xavier_minus_D_ctor: PASS",
+    "R014 D_xavier_minus_D_ctor: PASS",
+    "R014 D_xavier_minus_D_mid1: PASS",
+    "R014 D_mid1_minus_D_ctor: PASS"
+  ],
+  "policy": "Any mismatch raises RuntimeError (HARD STOP -> DS)."
+}

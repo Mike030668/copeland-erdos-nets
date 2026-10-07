@@ -1,0 +1,9 @@
+{
+  "config_name": "wikitext-2-raw-v1",
+  "dataset": "Salesforce/wikitext",
+  "n_test_chunks": 2213,
+  "n_train_chunks": 18686,
+  "n_val_chunks": 1931,
+  "seq_len": 128,
+  "tokenizer": "gpt2"
+}
