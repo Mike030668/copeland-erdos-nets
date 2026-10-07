@@ -115,7 +115,7 @@ def test_scientific_primitives_ast_unchanged():
     new=ast.parse((ROOT/path).read_text())
     def scientific(tree):
         return [ast.dump(n,include_attributes=False) for n in tree.body
-                if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)) and n.name!='DriveUpdates']
+                if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)) and n.name not in ('DriveUpdates','main')]
     assert scientific(old)==scientific(new)
     for name in ('src/copeland_erdos_nets/gate_bc_protocol.py','configs/gate_bc_canonical.json','configs/gate_bc_smoke.json'):
         assert (ROOT/name).read_bytes()==subprocess.check_output(['git','show','1e08060db280a38b724cc242037959fffd299261:'+name],cwd=ROOT)

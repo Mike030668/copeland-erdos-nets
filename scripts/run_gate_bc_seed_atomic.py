@@ -162,7 +162,7 @@ def config_gate(cfg, mode=None, seed=None):
 
 class DriveUpdates:
     """Update exact existing placeholders only; verify every upload by readback."""
-    def __init__(self, out, prefix):
+    def __init__(self, out, prefix, manifest=None):
         from pydrive2.drive import GoogleDrive
         from copeland_erdos_nets.sa_drive_auth import ServiceAccountOnlyAuth
         ga = ServiceAccountOnlyAuth("/content/sa.json")
@@ -178,11 +178,23 @@ class DriveUpdates:
                 raise HardGateError("Drive folder not unique: "+title)
             parent = found[0]["id"]
         self.parent = parent
+        self.manifest = manifest
+        if manifest is not None:
+            from copeland_erdos_nets.attempt_transport import existing_target_id
+            if manifest['namespace'] != prefix or manifest['exchange_id'] != parent or manifest['sa_principal'] != ga.principal:
+                raise HardGateError('transport manifest namespace/parent/principal mismatch')
+            for suffix in manifest['targets']:
+                existing_target_id(self.drive, manifest, suffix)
+            atomic_json(out/'transport_manifest.json', manifest)
         self.receipts = []
 
     def upload(self, path, suffix):
         title = self.prefix+suffix
-        found = self.drive.ListFile({"q": f"title='{title}' and '{self.parent}' in parents and trashed=false"}).GetList()
+        if getattr(self, 'manifest', None) is not None:
+            from copeland_erdos_nets.attempt_transport import existing_target_id
+            found = [{'id': existing_target_id(self.drive, self.manifest, suffix)}]
+        else:
+            found = self.drive.ListFile({"q": f"title='{title}' and '{self.parent}' in parents and trashed=false"}).GetList()
         if len(found) != 1:
             raise HardGateError("missing/nonunique Drive placeholder: "+title)
         f = self.drive.CreateFile({"id": found[0]["id"]})
@@ -327,6 +339,7 @@ def main():
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--mode", default="smoke")
     ap.add_argument("--attempt-id")
+    ap.add_argument("--transport-manifest")
     args = ap.parse_args()
     cfg = json.loads(Path(args.config).read_text())
     # Before imports/data/model/RNG manipulation: close all canonical routes.
@@ -342,6 +355,12 @@ def main():
     drive = None
     branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=ROOT, text=True).strip() if (ROOT/".git").exists() else os.environ.get("GATE_BC_SOURCE_BRANCH", "UNEXPOSED")
     source_sha = os.environ.get("GATE_BC_SOURCE_SHA", os.environ.get("CE_GIT_SHA", "UNEXPOSED"))
+    transport_manifest = None
+    if args.mode == 'canonical' and os.environ.get('GATE_BC_DRIVE_LIVE') == '1':
+        from copeland_erdos_nets.attempt_transport import validate_manifest
+        if not args.transport_manifest or not args.attempt_id:
+            raise HardGateError('canonical live execution requires explicit attempt transport manifest; no legacy fallback')
+        transport_manifest = validate_manifest(json.loads(Path(args.transport_manifest).read_text()), args.seed, attempt, source_sha)
     atomic_json(out/"attempt.json", {"attempt_id": attempt, "seed": args.seed, "mode": label,
                 "branch": branch, "source_sha": source_sha, "host": platform.node(),
                 "session": os.environ.get("GATE_BC_SESSION", "UNEXPOSED"), "started_unix": time.time(),
@@ -361,7 +380,7 @@ def main():
             drive.upload(out/"state.json", "_state.json")
     try:
         if os.environ.get("GATE_BC_DRIVE_LIVE") == "1":
-            drive = DriveUpdates(out, f"gate_bc_seed_{args.seed}" if args.mode == "canonical" else "gate_bc_smoke_seed_1067")
+            drive = DriveUpdates(out, transport_manifest['namespace'], transport_manifest) if transport_manifest else DriveUpdates(out, 'gate_bc_smoke_seed_1067')
         update_state("preflight")
         runtime_gate(cfg["runtime_freeze"], out)
         conf = load_conf()
