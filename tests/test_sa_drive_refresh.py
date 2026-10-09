@@ -109,6 +109,44 @@ def test_changed_principal_hard_fails(transport):
     assert refreshes==[] and actions==[]
 
 
+@pytest.mark.parametrize('suffix', ['_state.json', '_live.csv', '_checkpoint_B00.pt',
+                                   '_best_B00.pt', '_archive.tar.gz', '_archive_receipt.json'])
+def test_committed_5xx_expiry_integration(transport, monkeypatch, suffix):
+    import httplib2
+    import random
+    import numpy as np
+    import torch
+    from googleapiclient.errors import HttpError
+    import copeland_erdos_nets.drive_transaction as transaction
+    credentials,auth,updater,payload,refreshes,actions = transport
+    old_create = updater.drive.CreateFile
+    injected = []
+    def create(metadata):
+        file = old_create(metadata)
+        upload = file.Upload
+        def fail_after_commit():
+            upload()
+            if not injected:
+                injected.append(True)
+                credentials.access_token_expired = True
+                raise HttpError(httplib2.Response({'status':'500'}), b'{"error":{"code":500}}')
+        file.Upload = fail_after_commit
+        return file
+    updater.drive.CreateFile = create
+    real_transaction = transaction.update_readback
+    delays = []
+    monkeypatch.setattr(transaction, 'update_readback',
+                        lambda *args: real_transaction(*args, sleeper=delays.append))
+    before = (random.getstate(), np.random.get_state(), torch.get_rng_state().clone())
+    updater.upload(payload, suffix)
+    after = (random.getstate(), np.random.get_state(), torch.get_rng_state())
+    assert before[0] == after[0]
+    assert all(np.array_equal(a,b) for a,b in zip(before[1],after[1]))
+    assert torch.equal(before[2],after[2])
+    assert actions == ['update','update','readback'] and delays == [1]
+    assert refreshes == [auth.principal] and updater.transactions[-1]['outcome'] == 'PASS'
+
+
 def test_scientific_primitives_ast_unchanged():
     path='scripts/run_gate_bc_seed_atomic.py'
     old=ast.parse(subprocess.check_output(['git','show','1e08060db280a38b724cc242037959fffd299261:'+path],cwd=ROOT,text=True))

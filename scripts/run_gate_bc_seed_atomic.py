@@ -197,19 +197,28 @@ class DriveUpdates:
             found = self.drive.ListFile({"q": f"title='{title}' and '{self.parent}' in parents and trashed=false"}).GetList()
         if len(found) != 1:
             raise HardGateError("missing/nonunique Drive placeholder: "+title)
-        f = self.drive.CreateFile({"id": found[0]["id"]})
-        f.SetContentFile(str(path))
-        f.Upload()
-        verify = self.out/(".readback_"+title)
-        self.drive.CreateFile({"id": found[0]["id"]}).GetContentFile(str(verify))
-        digest, size = sha_file(path), Path(path).stat().st_size
-        passed = sha_file(verify)==digest and verify.stat().st_size==size
-        verify.unlink()
+        from copeland_erdos_nets.drive_transaction import update_readback
+        transactions = getattr(self, 'transactions', [])
+        self.transactions = transactions
+        def record(receipt):
+            transactions.append(receipt)
+            atomic_json(self.out/'drive_transactions.json', transactions)
+            if receipt.get('failed_phase') == 'verify':
+                self.receipts.append({'file': title, 'sha256': receipt['payload_sha256'],
+                                      'size': receipt['size'], 'readback_pass': False,
+                                      'time_unix': time.time()})
+                atomic_json(self.out/'drive_durability.json', self.receipts)
+        try:
+            transaction = update_readback(self.drive, found[0]['id'], path, self.out, record)
+        except RuntimeError as error:
+            raise HardGateError(str(error)) from error
+        digest, size = transaction['payload_sha256'], transaction['size']
+        passed = transaction['readback_pass']
         self.receipts.append({"file": title, "sha256": digest, "size": size, "readback_pass": passed, "time_unix": time.time()})
         atomic_json(self.out/"drive_durability.json", self.receipts)
         atomic_json(self.out/"drive_auth_refresh.json", {
             "principal": self.auth.principal, "auth_method": "service",
-            "user_oauth_fallback": "FORBIDDEN", "operation_retries": 0,
+            "user_oauth_fallback": "FORBIDDEN", "operation_retry_budget": 3,
             "refresh_events": self.auth.refresh_events})
         if not passed:
             raise HardGateError("Drive readback mismatch "+title)
