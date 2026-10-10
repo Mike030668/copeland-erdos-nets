@@ -1,0 +1,10 @@
+{
+  "record_type": "drive_transactions.json",
+  "record_count": 1693,
+  "outcome_counts": {
+    "PASS": 1693
+  },
+  "readback_pass_count": 1693,
+  "retries_total": 0,
+  "audit_boundary": "Architect verification; DS documentary audit, not independent SA/binary reproduction"
+}

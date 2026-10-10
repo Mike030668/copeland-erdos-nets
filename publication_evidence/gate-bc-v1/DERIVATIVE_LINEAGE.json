@@ -1,0 +1,223 @@
+[
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/TECHNICAL_AUDIT.json",
+    "source_sha256": "9872eb4634f7bf693061008fb2d4f2de8fa3c9c567dc6bf8c7e41644bfc6bbd7",
+    "public": "provenance/67/technical_audit.json",
+    "public_sha256": "44da35f5205de4e4a0f5ca5944cd195b0bf2bd93dddde7ee47596b15433ee1aa",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "archive_receipt(private routing metadata; separately summarized)",
+      "files(non-checkpoint internal evidence paths)"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/drive_durability.json",
+    "source_sha256": "99c3efd655037a75ab6edd4fc4030873d1c3c30339c6d75f18428a966dbde0e2",
+    "public": "provenance/67/durability_summary.json",
+    "public_sha256": "111576647ff127f51f5477d4d506f041171c427ae82510a914b0b820a367e3bd",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "target_id",
+      "artifact/per-operation payload metadata",
+      "retries(details)",
+      "other per-operation records; counts retained"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/TECHNICAL_AUDIT.json",
+    "source_sha256": "b1f936151531ddf3e12af0d0efca38947229da05080f0d4973d3a4f086955525",
+    "public": "provenance/68/technical_audit.json",
+    "public_sha256": "b78fe4e0f9425b23d766754631b9f18c8546e316f97892d50a60fe17cbef6794",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "archive_receipt(private routing metadata; separately summarized)",
+      "files(non-checkpoint internal evidence paths)"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/drive_transactions.json",
+    "source_sha256": "c69d640d17e06227d4d1f16ac74b100197aae455e0c755bc76373c3c21e2d870",
+    "public": "provenance/68/durability_summary.json",
+    "public_sha256": "fe87860c12b06c7d0af18ac017c020e1f9c4554513d6262dec2205364e28424c",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "target_id",
+      "artifact/per-operation payload metadata",
+      "retries(details)",
+      "other per-operation records; counts retained"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/TECHNICAL_AUDIT.json",
+    "source_sha256": "d58b234603206c94dba6c7c00739dc16f6b0ed9a2cab77e08f6b4d13b77cfa9d",
+    "public": "provenance/69/technical_audit.json",
+    "public_sha256": "8c41e833e065052393b05768ffd5014988dfafaf291a9c4afe3f24ebf7715ca5",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "archive_receipt(private routing metadata; separately summarized)",
+      "files(non-checkpoint internal evidence paths)"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/drive_transactions.json",
+    "source_sha256": "d54916f6740d5eab2a65eaecbb55d6206bef5db9b3fd4a7695c74bf590c61695",
+    "public": "provenance/69/durability_summary.json",
+    "public_sha256": "ae291d114eac9a30633961e3c37ac48b4f38c0b6401d8c77e71563f992caf816",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "target_id",
+      "artifact/per-operation payload metadata",
+      "retries(details)",
+      "other per-operation records; counts retained"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/TECHNICAL_AUDIT.json",
+    "source_sha256": "40ab1bb451fb142790fa502528a197a0d3559a278e6dc0357c9efe5396f9c583",
+    "public": "provenance/70/technical_audit.json",
+    "public_sha256": "611b1e2256b191493a1ab5ff214bf34c097185664d1fa8a96f7f20a92f971778",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "archive_receipt(private routing metadata; separately summarized)",
+      "files(non-checkpoint internal evidence paths)"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/drive_transactions.json",
+    "source_sha256": "0b6ddb23af6c8f6305842c072dc4ec413c813a67b654ef40e2e5be508485f3ad",
+    "public": "provenance/70/durability_summary.json",
+    "public_sha256": "c43e3ab5c733b0056c436c7e13a1a1a8cf93aabaf2ec37416c44192d3e76c3ac",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "target_id",
+      "artifact/per-operation payload metadata",
+      "retries(details)",
+      "other per-operation records; counts retained"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/TECHNICAL_AUDIT.json",
+    "source_sha256": "bcf370ad4262d9d1920bf4d1e1e481d72dc58866d4bc0a4f407d4e782d425baa",
+    "public": "provenance/71/technical_audit.json",
+    "public_sha256": "17d5585b26807e641125d52fd674e3313e8c95de1b81664d058d5bbf06691443",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "archive_receipt(private routing metadata; separately summarized)",
+      "files(non-checkpoint internal evidence paths)"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/drive_transactions.json",
+    "source_sha256": "639e7ffab0c3147d5f8d73b6b8a61ec102b6a676e88ca33cff074357fe289e9b",
+    "public": "provenance/71/durability_summary.json",
+    "public_sha256": "fe87860c12b06c7d0af18ac017c020e1f9c4554513d6262dec2205364e28424c",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "target_id",
+      "artifact/per-operation payload metadata",
+      "retries(details)",
+      "other per-operation records; counts retained"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/excluded_attempts/seed67_attempt1.json",
+    "source_sha256": "2845b6a020ad28e4c16734f0162d0acc6ea5a8ff865628f9efcb8600e42563eb",
+    "public": "exclusions/seed67_attempt1.json",
+    "public_sha256": "c84a467c5036f93cf760300ab40f00ca6c0b6a68b3ba37fd2b2759a219974b58",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "classification",
+      "scientific_failure",
+      "archive_path",
+      "archive_sha256",
+      "archive_bytes",
+      "archive_readback_receipt",
+      "incomplete_evidence_preserved",
+      "immutable",
+      "retry_authorized",
+      "reuse_splice_resume",
+      "stale_drive_state"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/excluded_attempts/seed68_attempt1.json",
+    "source_sha256": "ec0f810af26cbaf166042ffd72a9748010aa1a93956b61a216606d202dbbf6fc",
+    "public": "exclusions/seed68_attempt1.json",
+    "public_sha256": "588dba6ee04013025f21583a8a62a30bffb82540b50b2fd92572b8f5b66765e7",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "immutable",
+      "source_sha",
+      "failure_class",
+      "archive",
+      "archive_bytes",
+      "archive_sha256",
+      "manifest",
+      "ds_disposition",
+      "checkpoint_reuse",
+      "retry_execution"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/excluded_attempts/seed68_attempt2.json",
+    "source_sha256": "f7043db065fc4165f7bee74c56f4e2bcd2a754418024961eae566a9ad27dfb60",
+    "public": "exclusions/seed68_attempt2.json",
+    "public_sha256": "d183748bcb37658e9e82d49bb881eb3b0f321971161fe02711a37a72a14a8cfe",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "all_conditions_excluded",
+      "source_sha",
+      "endpoint",
+      "immutable_targets",
+      "snapshot",
+      "authority",
+      "terminal_archive",
+      "final_receipt",
+      "state_repair",
+      "state_checkpoint_rng_reuse",
+      "fresh_attempt3"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  },
+  {
+    "source": "discussion/architect_reports/GATE_BC_canonical_execution/excluded_attempts/seed68_attempt3.json",
+    "source_sha256": "b1cc63241c39c32acb66a124ccae56773dcc3dd004e806500103a5b40db154fd",
+    "public": "exclusions/seed68_attempt3.json",
+    "public_sha256": "be82612760240cb12221fcef3e6ed307f5e55334c3b6c07ef48701b1403d51b9",
+    "kind": "PUBLIC_DERIVATIVE",
+    "omitted_fields": [
+      "authority_path",
+      "authority_sha256",
+      "snapshot",
+      "targets_immutable",
+      "checkpoint_state_rng_reuse"
+    ],
+    "scientific_values_unchanged": true,
+    "omission_reason": "Approved privacy/scope minimization; original retained unchanged, scientific endpoints not modified."
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "experiment": {"name": "GATE_BC_PARAMETER_FORWARD_SMOKE", "mode": "NONCANONICAL_SMOKE", "conditions": ["B00", "B01", "B10", "B11", "C_002"], "seed": 1067, "canonical_authorization": false},
+  "data": {"dataset": "Salesforce/wikitext", "config_name": "wikitext-2-raw-v1", "tokenizer": "gpt2", "batch_size": 32, "seq_len": 128, "train_drop_last": true, "val_drop_last": true, "test_drop_last": false, "accepted_structure": {"vocab": 50257, "seq_len": 128, "n_train_chunks": 18686, "n_validation_chunks": 1931, "n_test_chunks": 2213}},
+  "model": {"d_model": 128, "n_heads": 4, "d_ff": 512, "n_layers": 2},
+  "training": {"epochs": 1, "schedule_epochs": 15, "lr": 0.0005, "weight_decay": 0.01, "device": "cuda", "held_out_test": false},
+  "telemetry": {"enabled": true, "read_only": true},
+  "runtime_freeze": {"gpu": "Tesla T4", "python": "3.13.15", "torch": "2.11.0+cu128", "cuda": "12.8", "numpy": "2.1.3", "datasets": "4.0.0", "transformers": "5.15.1", "driver": "580.82.07"},
+  "rng_policy": {"seed_model_offset": 0, "seed_shuffle_offset": 20011, "seed_embedding_redraw_offset": 30013},
+  "parity": {"rms_abs_strict": 0.000001, "cosine_min": 0.999999, "normalized_max_abs_diff_max": 0.0001, "matched_forward_rtol": 0.000001, "matched_forward_atol": 0.0000001},
+  "execution_policy": "only seed1067 smoke permitted; canonical67-71 reserved untouched"
+}

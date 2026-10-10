@@ -1,0 +1,16 @@
+{
+  "class": "AdamW",
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "betas": [
+    0.9,
+    0.999
+  ],
+  "eps": 1e-08,
+  "amsgrad": false,
+  "AMP": false,
+  "scheduler": "NONE",
+  "gradient_clipping": "NONE",
+  "selection": "earliest strict validation improvement",
+  "test_evaluation": "ONCE_AT_VALIDATION_SELECTED_CHECKPOINT"
+}

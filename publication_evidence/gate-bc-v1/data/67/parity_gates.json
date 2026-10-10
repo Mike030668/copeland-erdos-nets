@@ -1,0 +1,208 @@
+[
+  {
+    "gate": "exact_condition_set",
+    "pass": true
+  },
+  {
+    "gate": "independent_cell_storage",
+    "pass": true
+  },
+  {
+    "gate": "B00:stored_rms",
+    "pass": true,
+    "realized": 0.006300345316590846,
+    "target": 0.006300345504670178
+  },
+  {
+    "gate": "B00:effective_rms",
+    "pass": true,
+    "realized": 0.006300345316590846,
+    "target": 0.006300345504670178
+  },
+  {
+    "gate": "B00:direction",
+    "pass": true,
+    "cosine_similarity": 0.9999999999997,
+    "normalized_max_abs_diff": 1.1445587056249651e-10
+  },
+  {
+    "gate": "B00:nonembedding_identity",
+    "pass": true
+  },
+  {
+    "gate": "B00:fp32_parameters",
+    "pass": true
+  },
+  {
+    "gate": "B00:untied",
+    "pass": true
+  },
+  {
+    "gate": "B00:fixed_alpha",
+    "pass": true
+  },
+  {
+    "gate": "B01:stored_rms",
+    "pass": true,
+    "realized": 0.006300345316590846,
+    "target": 0.006300345504670178
+  },
+  {
+    "gate": "B01:effective_rms",
+    "pass": true,
+    "realized": 1.0000723738968968,
+    "target": 1.0000724037512834
+  },
+  {
+    "gate": "B01:direction",
+    "pass": true,
+    "cosine_similarity": 0.9999999999997,
+    "normalized_max_abs_diff": 1.1445587056249651e-10
+  },
+  {
+    "gate": "B01:nonembedding_identity",
+    "pass": true
+  },
+  {
+    "gate": "B01:fp32_parameters",
+    "pass": true
+  },
+  {
+    "gate": "B01:untied",
+    "pass": true
+  },
+  {
+    "gate": "B01:fixed_alpha",
+    "pass": true
+  },
+  {
+    "gate": "B10:stored_rms",
+    "pass": true,
+    "realized": 1.0000724037512834,
+    "target": 1.0000724037512834
+  },
+  {
+    "gate": "B10:effective_rms",
+    "pass": true,
+    "realized": 0.006300345504670178,
+    "target": 0.006300345504670178
+  },
+  {
+    "gate": "B10:direction",
+    "pass": true,
+    "cosine_similarity": 0.9999999999997666,
+    "normalized_max_abs_diff": 0.0
+  },
+  {
+    "gate": "B10:nonembedding_identity",
+    "pass": true
+  },
+  {
+    "gate": "B10:fp32_parameters",
+    "pass": true
+  },
+  {
+    "gate": "B10:untied",
+    "pass": true
+  },
+  {
+    "gate": "B10:fixed_alpha",
+    "pass": true
+  },
+  {
+    "gate": "B11:stored_rms",
+    "pass": true,
+    "realized": 1.0000724037512834,
+    "target": 1.0000724037512834
+  },
+  {
+    "gate": "B11:effective_rms",
+    "pass": true,
+    "realized": 1.0000724037512834,
+    "target": 1.0000724037512834
+  },
+  {
+    "gate": "B11:direction",
+    "pass": true,
+    "cosine_similarity": 0.9999999999997666,
+    "normalized_max_abs_diff": 0.0
+  },
+  {
+    "gate": "B11:nonembedding_identity",
+    "pass": true
+  },
+  {
+    "gate": "B11:fp32_parameters",
+    "pass": true
+  },
+  {
+    "gate": "B11:untied",
+    "pass": true
+  },
+  {
+    "gate": "B11:fixed_alpha",
+    "pass": true
+  },
+  {
+    "gate": "C_002:stored_rms",
+    "pass": true,
+    "realized": 0.020000000247961537,
+    "target": 0.02
+  },
+  {
+    "gate": "C_002:effective_rms",
+    "pass": true,
+    "realized": 0.020000000247961537,
+    "target": 0.02
+  },
+  {
+    "gate": "C_002:direction",
+    "pass": true,
+    "cosine_similarity": 0.9999999999996907,
+    "normalized_max_abs_diff": 7.344316886419289e-11
+  },
+  {
+    "gate": "C_002:nonembedding_identity",
+    "pass": true
+  },
+  {
+    "gate": "C_002:fp32_parameters",
+    "pass": true
+  },
+  {
+    "gate": "C_002:untied",
+    "pass": true
+  },
+  {
+    "gate": "C_002:fixed_alpha",
+    "pass": true
+  },
+  {
+    "gate": "stored_identity:B00:B01",
+    "pass": true
+  },
+  {
+    "gate": "stored_identity:B10:B11",
+    "pass": true
+  },
+  {
+    "gate": "B11:constructor_bytes",
+    "pass": true
+  },
+  {
+    "gate": "matched_forward:B00:B10",
+    "pass": true,
+    "max_abs_diff": 0.0,
+    "rtol": 1e-06,
+    "atol": 1e-07,
+    "fixture_sha256": "bbd330b12e8159e117376ef24fa106413bc9fc18032a0d43e95c5dae5e47953f"
+  },
+  {
+    "gate": "matched_forward:B01:B11",
+    "pass": true,
+    "max_abs_diff": 4.76837158203125e-07,
+    "rtol": 1e-06,
+    "atol": 1e-07,
+    "fixture_sha256": "bbd330b12e8159e117376ef24fa106413bc9fc18032a0d43e95c5dae5e47953f"
+  }
+]

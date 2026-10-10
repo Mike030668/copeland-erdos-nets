@@ -1,0 +1,182 @@
+[
+  {
+    "public": "tables/DS_COMPARISON.json",
+    "public_sha256": "c041e3b580e24baab00ebba97801663651732193bee9bf36b6e0ce5d7c423520",
+    "kind": "DETERMINISTIC_CALCULATION",
+    "inputs": [
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/metrics.csv",
+        "source_sha256": "5bc9f9d9c00da84040f957f419d6b6b7a5b6a66cf99f6e496557ffcf2478db95",
+        "public_input": "data/67/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/metrics.csv",
+        "source_sha256": "c9f797a231d4e99509dd6bb3a905f7b53cbca1750a910722c69a196fa68accea",
+        "public_input": "data/68/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/metrics.csv",
+        "source_sha256": "27d84d890ccea9e954f9aceabaa8d9eaeed16fb834d7b0a136fef393fa5a7487",
+        "public_input": "data/69/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/metrics.csv",
+        "source_sha256": "05fe91cb218490749399f75288f21d5dcd56e4890560177d168717ad88429963",
+        "public_input": "data/70/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/metrics.csv",
+        "source_sha256": "fe907aa2d5ee7646b1f61543dfad4b025ab9205b183bee79d013cf360c823cdc",
+        "public_input": "data/71/metrics.csv"
+      }
+    ],
+    "algorithm": "analysis/calculate.py",
+    "algorithm_sha256": "f46910bc5c13c76cd991c1c68789fd9bac421ac73a2794971b086d6bb67de5fc",
+    "ds_comparison_algorithm": "analysis/compare_ds.py",
+    "scientific_endpoints_recomputed": false
+  },
+  {
+    "public": "tables/conditions.csv",
+    "public_sha256": "1f1942cf1ff4b3875150682e9333244e203a9dcab1cfe3df797296b2908b4060",
+    "kind": "DETERMINISTIC_CALCULATION",
+    "inputs": [
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/metrics.csv",
+        "source_sha256": "5bc9f9d9c00da84040f957f419d6b6b7a5b6a66cf99f6e496557ffcf2478db95",
+        "public_input": "data/67/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/metrics.csv",
+        "source_sha256": "c9f797a231d4e99509dd6bb3a905f7b53cbca1750a910722c69a196fa68accea",
+        "public_input": "data/68/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/metrics.csv",
+        "source_sha256": "27d84d890ccea9e954f9aceabaa8d9eaeed16fb834d7b0a136fef393fa5a7487",
+        "public_input": "data/69/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/metrics.csv",
+        "source_sha256": "05fe91cb218490749399f75288f21d5dcd56e4890560177d168717ad88429963",
+        "public_input": "data/70/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/metrics.csv",
+        "source_sha256": "fe907aa2d5ee7646b1f61543dfad4b025ab9205b183bee79d013cf360c823cdc",
+        "public_input": "data/71/metrics.csv"
+      }
+    ],
+    "algorithm": "analysis/calculate.py",
+    "algorithm_sha256": "f46910bc5c13c76cd991c1c68789fd9bac421ac73a2794971b086d6bb67de5fc",
+    "ds_comparison_algorithm": "analysis/compare_ds.py",
+    "scientific_endpoints_recomputed": false
+  },
+  {
+    "public": "tables/contrasts.csv",
+    "public_sha256": "c24741ba92ec43edba18ed84101866e5930855f247c07f857f27aa73aebb69a2",
+    "kind": "DETERMINISTIC_CALCULATION",
+    "inputs": [
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/metrics.csv",
+        "source_sha256": "5bc9f9d9c00da84040f957f419d6b6b7a5b6a66cf99f6e496557ffcf2478db95",
+        "public_input": "data/67/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/metrics.csv",
+        "source_sha256": "c9f797a231d4e99509dd6bb3a905f7b53cbca1750a910722c69a196fa68accea",
+        "public_input": "data/68/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/metrics.csv",
+        "source_sha256": "27d84d890ccea9e954f9aceabaa8d9eaeed16fb834d7b0a136fef393fa5a7487",
+        "public_input": "data/69/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/metrics.csv",
+        "source_sha256": "05fe91cb218490749399f75288f21d5dcd56e4890560177d168717ad88429963",
+        "public_input": "data/70/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/metrics.csv",
+        "source_sha256": "fe907aa2d5ee7646b1f61543dfad4b025ab9205b183bee79d013cf360c823cdc",
+        "public_input": "data/71/metrics.csv"
+      }
+    ],
+    "algorithm": "analysis/calculate.py",
+    "algorithm_sha256": "f46910bc5c13c76cd991c1c68789fd9bac421ac73a2794971b086d6bb67de5fc",
+    "ds_comparison_algorithm": "analysis/compare_ds.py",
+    "scientific_endpoints_recomputed": false
+  },
+  {
+    "public": "tables/per_seed.csv",
+    "public_sha256": "bdc74557bf908a90c62b2919132bbb400a30b827756a97a79f4f68d7d5e33e00",
+    "kind": "DETERMINISTIC_CALCULATION",
+    "inputs": [
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/metrics.csv",
+        "source_sha256": "5bc9f9d9c00da84040f957f419d6b6b7a5b6a66cf99f6e496557ffcf2478db95",
+        "public_input": "data/67/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/metrics.csv",
+        "source_sha256": "c9f797a231d4e99509dd6bb3a905f7b53cbca1750a910722c69a196fa68accea",
+        "public_input": "data/68/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/metrics.csv",
+        "source_sha256": "27d84d890ccea9e954f9aceabaa8d9eaeed16fb834d7b0a136fef393fa5a7487",
+        "public_input": "data/69/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/metrics.csv",
+        "source_sha256": "05fe91cb218490749399f75288f21d5dcd56e4890560177d168717ad88429963",
+        "public_input": "data/70/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/metrics.csv",
+        "source_sha256": "fe907aa2d5ee7646b1f61543dfad4b025ab9205b183bee79d013cf360c823cdc",
+        "public_input": "data/71/metrics.csv"
+      }
+    ],
+    "algorithm": "analysis/calculate.py",
+    "algorithm_sha256": "f46910bc5c13c76cd991c1c68789fd9bac421ac73a2794971b086d6bb67de5fc",
+    "ds_comparison_algorithm": "analysis/compare_ds.py",
+    "scientific_endpoints_recomputed": false
+  },
+  {
+    "public": "tables/results.json",
+    "public_sha256": "b4a1fd169d804c2d220c528b2e2cca1fb07dc966896bdc9e1ba444b8353d50fa",
+    "kind": "DETERMINISTIC_CALCULATION",
+    "inputs": [
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/67/receipts/metrics.csv",
+        "source_sha256": "5bc9f9d9c00da84040f957f419d6b6b7a5b6a66cf99f6e496557ffcf2478db95",
+        "public_input": "data/67/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/68/receipts/metrics.csv",
+        "source_sha256": "c9f797a231d4e99509dd6bb3a905f7b53cbca1750a910722c69a196fa68accea",
+        "public_input": "data/68/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/69/receipts/metrics.csv",
+        "source_sha256": "27d84d890ccea9e954f9aceabaa8d9eaeed16fb834d7b0a136fef393fa5a7487",
+        "public_input": "data/69/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/70/receipts/metrics.csv",
+        "source_sha256": "05fe91cb218490749399f75288f21d5dcd56e4890560177d168717ad88429963",
+        "public_input": "data/70/metrics.csv"
+      },
+      {
+        "source": "discussion/architect_reports/GATE_BC_canonical_execution/seeds/71/receipts/metrics.csv",
+        "source_sha256": "fe907aa2d5ee7646b1f61543dfad4b025ab9205b183bee79d013cf360c823cdc",
+        "public_input": "data/71/metrics.csv"
+      }
+    ],
+    "algorithm": "analysis/calculate.py",
+    "algorithm_sha256": "f46910bc5c13c76cd991c1c68789fd9bac421ac73a2794971b086d6bb67de5fc",
+    "ds_comparison_algorithm": "analysis/compare_ds.py",
+    "scientific_endpoints_recomputed": false
+  }
+]

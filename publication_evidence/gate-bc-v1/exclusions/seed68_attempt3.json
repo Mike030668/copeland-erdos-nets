@@ -1,0 +1,10 @@
+{
+  "attempt_id": "canonical68-attempt3-release-v1",
+  "seed": 68,
+  "scientific_inclusion": "NONE_ENTIRE_ATTEMPT",
+  "status": "EXCLUDED / EVIDENCE_INCOMPLETE",
+  "technical_class": "RUNTIME_UNAVAILABLE",
+  "cause": "NOT_ESTABLISHED",
+  "preservation": "historical targets retained immutable",
+  "splice": "FORBIDDEN"
+}

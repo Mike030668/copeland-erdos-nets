@@ -1,0 +1,57 @@
+{
+  "technical_audit": "PASS",
+  "implementation_sha": "7fc1e93604129eb17f6d9966809f24460776b0d0",
+  "seed": 67,
+  "attempt_id": "canonical67-attempt2-routing-v1",
+  "parity_gate_count": 42,
+  "batch_pre_gate_rows": 75,
+  "live_epoch_rows": 75,
+  "endpoint_rows": 5,
+  "test_evaluations": 5,
+  "checkpoint_files_verified": 10,
+  "drive_readback_records": 1693,
+  "scientific_interpretation": "NOT_PERFORMED",
+  "partial_contrasts": "NOT_COMPUTED",
+  "checkpoint_files": {
+    "checkpoints/B00_best.pt": {
+      "size": 53395886,
+      "sha256": "d03be4ec1ef0d6ff0914119406970aeb0b7271857758031d602cafbb05d3b71c"
+    },
+    "checkpoints/B00_current.pt": {
+      "size": 160075401,
+      "sha256": "9fd146685b6051b74d529bd056d970210fb555f586baa11a0840b1ab8a861f83"
+    },
+    "checkpoints/B01_best.pt": {
+      "size": 53395886,
+      "sha256": "2120982e6f83ae59307d092a2b07ed2fe5d9199822c5ec7cc77c562705344b6e"
+    },
+    "checkpoints/B01_current.pt": {
+      "size": 160075401,
+      "sha256": "9b8fd4a1a42e32451f94f98fa539d47120db0d717592aa7aa8949feaca2a58df"
+    },
+    "checkpoints/B10_best.pt": {
+      "size": 53395886,
+      "sha256": "f46c71d3ea16372b4cdd037b5c675317b4f019785bd5d7002937436181297860"
+    },
+    "checkpoints/B10_current.pt": {
+      "size": 160075401,
+      "sha256": "189de1cee318fb5f001815bf228abeb71431a33241fa387f6349482dfba3efcd"
+    },
+    "checkpoints/B11_best.pt": {
+      "size": 53395886,
+      "sha256": "a58dc773e76a4d9f6a000e50f6fc6d9461ad814731c7ea94ae64a15a3ff1961d"
+    },
+    "checkpoints/B11_current.pt": {
+      "size": 160075401,
+      "sha256": "56736fc2e0e0456e1633531040c2ca58920794c5ab0ece4120495dab260b3c0f"
+    },
+    "checkpoints/C_002_best.pt": {
+      "size": 53395886,
+      "sha256": "44e2e29c90e0fb18c882c6c4b8f46e65f88db4001126ebe21ed3b10ddcf8d9e3"
+    },
+    "checkpoints/C_002_current.pt": {
+      "size": 160075401,
+      "sha256": "e95032f535906ebe62f59a5baa9355ce504a92571be00f087adf62170b9bda78"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "technical_audit": "PASS",
+  "implementation_sha": "f10d70c531d84f219d55ea558378c9100723ec52",
+  "seed": 70,
+  "attempt_id": "canonical70-attempt1-release-v1",
+  "parity_gate_count": 42,
+  "batch_pre_gate_rows": 75,
+  "live_epoch_rows": 75,
+  "endpoint_rows": 5,
+  "test_evaluations": 5,
+  "checkpoint_files_verified": 10,
+  "drive_readback_records": 1691,
+  "scientific_interpretation": "NOT_PERFORMED",
+  "partial_contrasts": "NOT_COMPUTED",
+  "checkpoint_files": {
+    "checkpoints/B00_best.pt": {
+      "size": 53395886,
+      "sha256": "ee7915bab6ab2be287bcd14989f42172a858bdccebe62ced68202815c3cf3675"
+    },
+    "checkpoints/B00_current.pt": {
+      "size": 160075401,
+      "sha256": "e8726f3e37c4aedf8083c73de001e182c414f78266cb536df063e344ed758db0"
+    },
+    "checkpoints/B01_best.pt": {
+      "size": 53395886,
+      "sha256": "db1646fb4183a03cceb3bc8a909c1d326c2638f018e0fdd46163312ed6279016"
+    },
+    "checkpoints/B01_current.pt": {
+      "size": 160075401,
+      "sha256": "82e5395ff627a6696c1b0625b0f8a8c1323c5e95c6b497e0a68c288bbcc0319b"
+    },
+    "checkpoints/B10_best.pt": {
+      "size": 53395886,
+      "sha256": "19bbec14d7d231c1116bcc3d7eb1f593005f2c526ff8ef5274f6878598115438"
+    },
+    "checkpoints/B10_current.pt": {
+      "size": 160075401,
+      "sha256": "250cef526b7501cbb850786fda35a98d7b7fb634d2803aad903f20c312fb8609"
+    },
+    "checkpoints/B11_best.pt": {
+      "size": 53395886,
+      "sha256": "6778108d611a3db2480eb34fdc214b9007dabd1c372c270c84ac2b8d88439b4b"
+    },
+    "checkpoints/B11_current.pt": {
+      "size": 160075401,
+      "sha256": "745d9dcaf3bfef54a67d6c8ff5b759b736e6db69b237feb05f7f6dee9f36c506"
+    },
+    "checkpoints/C_002_best.pt": {
+      "size": 53395886,
+      "sha256": "0b6c6c374175bcd6c8856df520ee159a81d55c9f3c6294569ad07f5932fde2c5"
+    },
+    "checkpoints/C_002_current.pt": {
+      "size": 160075401,
+      "sha256": "5079c55615de08528edde3029de1e2a714d404a7028a687c3cfcc509021f48c3"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "dataset": "Salesforce/wikitext",
+  "config_name": "wikitext-2-raw-v1",
+  "dataset_revision_exposed": "b08601e04326c79dfdd32d625aee71d232d685c3",
+  "tokenizer_revision_exposed": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "revision_resolution_errors": [],
+  "historical_revision": "UNRETAINED_NO_CONTINUITY_CLAIM",
+  "vocab": 50257,
+  "seq_len": 128,
+  "splits": {
+    "train": {
+      "raw_rows": 36718,
+      "token_count": 2391884,
+      "chunk_count": 18686,
+      "token_sha256_le_i64": "6fbae488de37f1d5dcc8e26b2f72bb74b158d9ef1467b687b62361800c92b86e",
+      "chunk_sha256_le_i64": "34ea6f9c8653decb2d5156fb4e6342ec5cc4ad660933c51e8e08ed0f097afdbe",
+      "dataset_fingerprint": "5d4fb603254a7a5b"
+    },
+    "validation": {
+      "raw_rows": 3760,
+      "token_count": 247289,
+      "chunk_count": 1931,
+      "token_sha256_le_i64": "5e6ac358ae41bad72a58b9267380b2f0a610a9571c65faa3f65af7aa38420773",
+      "chunk_sha256_le_i64": "f3f23ea302b225e7231cbad35e8b9202dd8128a9e97c127df25a6077d6c4ca56",
+      "dataset_fingerprint": "51d84d52d095f90d"
+    },
+    "test": {
+      "raw_rows": 4358,
+      "token_count": 283287,
+      "chunk_count": 2213,
+      "token_sha256_le_i64": "64f46d49c114045ee8f28a300d5693f86fdec2573fd5470cc56caee164a32051",
+      "chunk_sha256_le_i64": "1b4676dde3e34e4d90872fccd0a73f2fff7ace0a4e5816bfabacf7dae8dfe676",
+      "dataset_fingerprint": "a46124b21ac53738"
+    }
+  },
+  "structure_expected": {
+    "vocab": 50257,
+    "seq_len": 128,
+    "n_train_chunks": 18686,
+    "n_validation_chunks": 1931,
+    "n_test_chunks": 2213
+  },
+  "structure_actual": {
+    "vocab": 50257,
+    "seq_len": 128,
+    "n_train_chunks": 18686,
+    "n_validation_chunks": 1931,
+    "n_test_chunks": 2213
+  },
+  "structure_pass": true
+}

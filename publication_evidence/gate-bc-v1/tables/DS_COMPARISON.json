@@ -1,0 +1,304 @@
+{
+  "status": "PASS",
+  "compared_values": 42,
+  "absolute_tolerance": 5.00001e-07,
+  "reference": "DS_SCIENTIFIC_DECISION.md, six-decimal published values",
+  "precision_limit": "Independent unrounded DS machine output not supplied; no claim of bitwise equality to it.",
+  "computation": "full-precision accepted CSV floats, frozen paired t formula",
+  "comparisons": [
+    {
+      "label": "Delta_P",
+      "field": "mean",
+      "actual_full_precision": 58.23545149155403,
+      "ds_display": 58.235451,
+      "absolute_error": 4.915540330330259e-07
+    },
+    {
+      "label": "Delta_P",
+      "field": "sample_sd",
+      "actual_full_precision": 3.838772730074028,
+      "ds_display": 3.838773,
+      "absolute_error": 2.699259722405145e-07
+    },
+    {
+      "label": "Delta_P",
+      "field": "ci_lower",
+      "actual_full_precision": 53.46898559533473,
+      "ds_display": 53.468986,
+      "absolute_error": 4.046652719580379e-07
+    },
+    {
+      "label": "Delta_P",
+      "field": "ci_upper",
+      "actual_full_precision": 63.00191738777333,
+      "ds_display": 63.001917,
+      "absolute_error": 3.877733334434197e-07
+    },
+    {
+      "label": "Delta_F",
+      "field": "mean",
+      "actual_full_precision": 15.521410939572018,
+      "ds_display": 15.521411,
+      "absolute_error": 6.042798261773896e-08
+    },
+    {
+      "label": "Delta_F",
+      "field": "sample_sd",
+      "actual_full_precision": 2.8267190705454635,
+      "ds_display": 2.826719,
+      "absolute_error": 7.054546324880562e-08
+    },
+    {
+      "label": "Delta_F",
+      "field": "ci_lower",
+      "actual_full_precision": 12.011575636639703,
+      "ds_display": 12.011576,
+      "absolute_error": 3.633602965180671e-07
+    },
+    {
+      "label": "Delta_F",
+      "field": "ci_upper",
+      "actual_full_precision": 19.03124624250433,
+      "ds_display": 19.031246,
+      "absolute_error": 2.425043312825892e-07
+    },
+    {
+      "label": "I",
+      "field": "mean",
+      "actual_full_precision": -19.961679791084798,
+      "ds_display": -19.96168,
+      "absolute_error": 2.0891520335908353e-07
+    },
+    {
+      "label": "I",
+      "field": "sample_sd",
+      "actual_full_precision": 5.882121957335411,
+      "ds_display": 5.882122,
+      "absolute_error": 4.266458919488514e-08
+    },
+    {
+      "label": "I",
+      "field": "ci_lower",
+      "actual_full_precision": -27.26529885855205,
+      "ds_display": -27.265299,
+      "absolute_error": 1.4144794846515651e-07
+    },
+    {
+      "label": "I",
+      "field": "ci_upper",
+      "actual_full_precision": -12.658060723617547,
+      "ds_display": -12.658061,
+      "absolute_error": 2.7638245292394004e-07
+    },
+    {
+      "label": "Delta_002",
+      "field": "mean",
+      "actual_full_precision": 2.7226002154529283,
+      "ds_display": 2.7226,
+      "absolute_error": 2.154529283870943e-07
+    },
+    {
+      "label": "Delta_002",
+      "field": "sample_sd",
+      "actual_full_precision": 1.7406151657923818,
+      "ds_display": 1.740615,
+      "absolute_error": 1.6579238182323763e-07
+    },
+    {
+      "label": "Delta_002",
+      "field": "ci_lower",
+      "actual_full_precision": 0.5613410293610479,
+      "ds_display": 0.561341,
+      "absolute_error": 2.9361047926279582e-08
+    },
+    {
+      "label": "Delta_002",
+      "field": "ci_upper",
+      "actual_full_precision": 4.883859401544809,
+      "ds_display": 4.883859,
+      "absolute_error": 4.015448089589313e-07
+    },
+    {
+      "label": "P_at_small_F",
+      "field": "mean",
+      "actual_full_precision": 68.21629138709642,
+      "ds_display": 68.216291,
+      "absolute_error": 3.870964206953431e-07
+    },
+    {
+      "label": "P_at_small_F",
+      "field": "sample_sd",
+      "actual_full_precision": 6.373469801087401,
+      "ds_display": 6.37347,
+      "absolute_error": 1.9891259928073168e-07
+    },
+    {
+      "label": "P_at_small_F",
+      "field": "ci_lower",
+      "actual_full_precision": 60.30258339144727,
+      "ds_display": 60.302583,
+      "absolute_error": 3.914472728183682e-07
+    },
+    {
+      "label": "P_at_small_F",
+      "field": "ci_upper",
+      "actual_full_precision": 76.12999938274557,
+      "ds_display": 76.129999,
+      "absolute_error": 3.82745568572318e-07
+    },
+    {
+      "label": "P_at_large_F",
+      "field": "mean",
+      "actual_full_precision": 48.254611596011614,
+      "ds_display": 48.254612,
+      "absolute_error": 4.039883876316708e-07
+    },
+    {
+      "label": "P_at_large_F",
+      "field": "sample_sd",
+      "actual_full_precision": 2.480103667476525,
+      "ds_display": 2.480104,
+      "absolute_error": 3.3252347497736423e-07
+    },
+    {
+      "label": "P_at_large_F",
+      "field": "ci_lower",
+      "actual_full_precision": 45.175156160292886,
+      "ds_display": 45.175156,
+      "absolute_error": 1.6029288474328496e-07
+    },
+    {
+      "label": "P_at_large_F",
+      "field": "ci_upper",
+      "actual_full_precision": 51.33406703173034,
+      "ds_display": 51.334067,
+      "absolute_error": 3.1730344574043556e-08
+    },
+    {
+      "label": "F_at_small_P",
+      "field": "mean",
+      "actual_full_precision": 25.502250835114427,
+      "ds_display": 25.502251,
+      "absolute_error": 1.648855736391397e-07
+    },
+    {
+      "label": "F_at_small_P",
+      "field": "sample_sd",
+      "actual_full_precision": 1.7088997844090519,
+      "ds_display": 1.7089,
+      "absolute_error": 2.1559094820489122e-07
+    },
+    {
+      "label": "F_at_small_P",
+      "field": "ci_lower",
+      "actual_full_precision": 23.38037149627553,
+      "ds_display": 23.380371,
+      "absolute_error": 4.962755291160192e-07
+    },
+    {
+      "label": "F_at_small_P",
+      "field": "ci_upper",
+      "actual_full_precision": 27.624130173953326,
+      "ds_display": 27.62413,
+      "absolute_error": 1.7395332463365776e-07
+    },
+    {
+      "label": "F_at_large_P",
+      "field": "mean",
+      "actual_full_precision": 5.540571044029628,
+      "ds_display": 5.540571,
+      "absolute_error": 4.4029627943587e-08
+    },
+    {
+      "label": "F_at_large_P",
+      "field": "sample_sd",
+      "actual_full_precision": 5.509992948716107,
+      "ds_display": 5.509993,
+      "absolute_error": 5.128389268804767e-08
+    },
+    {
+      "label": "F_at_large_P",
+      "field": "ci_lower",
+      "actual_full_precision": -1.300988830747774,
+      "ds_display": -1.300989,
+      "absolute_error": 1.6925222601216205e-07
+    },
+    {
+      "label": "F_at_large_P",
+      "field": "ci_upper",
+      "actual_full_precision": 12.382130918807029,
+      "ds_display": 12.382131,
+      "absolute_error": 8.119297056907726e-08
+    },
+    {
+      "label": "B00",
+      "field": "mean",
+      "actual_full_precision": 239.63445578320238,
+      "ds_display": 239.634456,
+      "absolute_error": 2.1679761630366556e-07
+    },
+    {
+      "label": "B00",
+      "field": "sample_sd",
+      "actual_full_precision": 1.2348814822068872,
+      "ds_display": 1.234881,
+      "absolute_error": 4.822068873089336e-07
+    },
+    {
+      "label": "B01",
+      "field": "mean",
+      "actual_full_precision": 265.1367066183168,
+      "ds_display": 265.136707,
+      "absolute_error": 3.8168320770637365e-07
+    },
+    {
+      "label": "B01",
+      "field": "sample_sd",
+      "actual_full_precision": 0.7110872693389622,
+      "ds_display": 0.711087,
+      "absolute_error": 2.693389621333253e-07
+    },
+    {
+      "label": "B10",
+      "field": "mean",
+      "actual_full_precision": 307.8507471702988,
+      "ds_display": 307.850747,
+      "absolute_error": 1.7029879018082283e-07
+    },
+    {
+      "label": "B10",
+      "field": "sample_sd",
+      "actual_full_precision": 6.006104854534977,
+      "ds_display": 6.006105,
+      "absolute_error": 1.4546502313805831e-07
+    },
+    {
+      "label": "B11",
+      "field": "mean",
+      "actual_full_precision": 313.3913182143284,
+      "ds_display": 313.391318,
+      "absolute_error": 2.1432839503177092e-07
+    },
+    {
+      "label": "B11",
+      "field": "sample_sd",
+      "actual_full_precision": 2.6334247351304794,
+      "ds_display": 2.633425,
+      "absolute_error": 2.6486952053872415e-07
+    },
+    {
+      "label": "C_002",
+      "field": "mean",
+      "actual_full_precision": 242.3570559986553,
+      "ds_display": 242.357056,
+      "absolute_error": 1.3446879165712744e-09
+    },
+    {
+      "label": "C_002",
+      "field": "sample_sd",
+      "actual_full_precision": 2.046916173499846,
+      "ds_display": 2.046916,
+      "absolute_error": 1.7349984604564384e-07
+    }
+  ]
+}

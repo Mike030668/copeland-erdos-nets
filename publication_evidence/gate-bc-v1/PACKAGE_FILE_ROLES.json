@@ -1,0 +1,24 @@
+{
+  "input_mapping": "SOURCE_TO_PUBLIC.json",
+  "generated_mapping": "GENERATED_LINEAGE.json",
+  "authored_packaging_files": [
+    "ALLOWLIST_AUTHORITY.json",
+    "ARCHIVE_INVENTORY.json",
+    "CHECKPOINT_INVENTORY.json",
+    "DERIVATIVE_LINEAGE.json",
+    "GENERATED_LINEAGE.json",
+    "INVENTORY_POLICY.md",
+    "PACKAGE_FILE_ROLES.json",
+    "PRIVACY_INSPECTION.json",
+    "RAW_COPY_AUDIT.json",
+    "README.md",
+    "SOURCE_TO_PUBLIC.json",
+    "VALIDATION.md",
+    "analysis/calculate.py",
+    "analysis/compare_ds.py"
+  ],
+  "inventory_controls": [
+    "SHA256SUMS",
+    "INVENTORY.csv"
+  ]
+}

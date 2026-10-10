@@ -1,0 +1,18 @@
+{
+  "fixture_seed": 7,
+  "training_rng_seed": 1001,
+  "epochs": 2,
+  "synthetic_only": true,
+  "fields_bit_identical": {
+    "model": true,
+    "optimizer": true,
+    "parameter_gradients": true,
+    "rng": true,
+    "curve": true,
+    "selected_model": true,
+    "best_epoch": true,
+    "best_loss": true,
+    "evaluation_logits": true
+  },
+  "pass": true
+}

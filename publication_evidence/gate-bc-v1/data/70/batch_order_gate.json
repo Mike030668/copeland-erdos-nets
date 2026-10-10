@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "epochs": 15,
+  "conditions": 5,
+  "rows": 75,
+  "before_optimization": true
+}

@@ -1,0 +1,352 @@
+[
+  {
+    "seed": 67,
+    "path": "checkpoints/B00_best.pt",
+    "size": 53395886,
+    "sha256": "d03be4ec1ef0d6ff0914119406970aeb0b7271857758031d602cafbb05d3b71c",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B00_current.pt",
+    "size": 160075401,
+    "sha256": "9fd146685b6051b74d529bd056d970210fb555f586baa11a0840b1ab8a861f83",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B01_best.pt",
+    "size": 53395886,
+    "sha256": "2120982e6f83ae59307d092a2b07ed2fe5d9199822c5ec7cc77c562705344b6e",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B01_current.pt",
+    "size": 160075401,
+    "sha256": "9b8fd4a1a42e32451f94f98fa539d47120db0d717592aa7aa8949feaca2a58df",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B10_best.pt",
+    "size": 53395886,
+    "sha256": "f46c71d3ea16372b4cdd037b5c675317b4f019785bd5d7002937436181297860",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B10_current.pt",
+    "size": 160075401,
+    "sha256": "189de1cee318fb5f001815bf228abeb71431a33241fa387f6349482dfba3efcd",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B11_best.pt",
+    "size": 53395886,
+    "sha256": "a58dc773e76a4d9f6a000e50f6fc6d9461ad814731c7ea94ae64a15a3ff1961d",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/B11_current.pt",
+    "size": 160075401,
+    "sha256": "56736fc2e0e0456e1633531040c2ca58920794c5ab0ece4120495dab260b3c0f",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/C_002_best.pt",
+    "size": 53395886,
+    "sha256": "44e2e29c90e0fb18c882c6c4b8f46e65f88db4001126ebe21ed3b10ddcf8d9e3",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 67,
+    "path": "checkpoints/C_002_current.pt",
+    "size": 160075401,
+    "sha256": "e95032f535906ebe62f59a5baa9355ce504a92571be00f087adf62170b9bda78",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B00_best.pt",
+    "size": 53395886,
+    "sha256": "d4061f112e9a22739599958aca6b02495ea9e02d27499bb638a8e0a5ae129d23",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B00_current.pt",
+    "size": 160075465,
+    "sha256": "10c8e2250fce603cfc3fc348edab48cd2867ce11a9f562c52d237914af91266e",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B01_best.pt",
+    "size": 53395886,
+    "sha256": "413ac7fd170aee6fce992b2caeb290db096674236977a890d9d13a634155858c",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B01_current.pt",
+    "size": 160075465,
+    "sha256": "01e647dbb51efd8672b935a841065f7f41b57bc877cbcf4d63892ed80e0a6261",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B10_best.pt",
+    "size": 53395886,
+    "sha256": "cdea4c01cd852d6a0f567068df2f850b88967b64b756624b9db2ee84eb4b4cee",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B10_current.pt",
+    "size": 160075465,
+    "sha256": "fbde31eba38a0ac27d65c96829f9be636a9abd4e6f291cc95b3492b7d1f148b9",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B11_best.pt",
+    "size": 53395886,
+    "sha256": "15cc208cbe684c1452e02c881134a5cf4c4abeb99f8560712825d8faed1b3418",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/B11_current.pt",
+    "size": 160075465,
+    "sha256": "824d319a691e6c0eb4220cdfead0360074d980b615ecd906d659deb37f166cef",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/C_002_best.pt",
+    "size": 53395886,
+    "sha256": "9ff3b415f4674b12f7bb269672d7361eb3558d50b3d42cdae74dc0905f613b46",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 68,
+    "path": "checkpoints/C_002_current.pt",
+    "size": 160075465,
+    "sha256": "fc070f330a213ac17f339a1b27661afd8e8ecb949b024fbc7ef23813cff815ab",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B00_best.pt",
+    "size": 53395886,
+    "sha256": "8f011f05a45992de3f8f07930d2b17c46696995ff0a3100d7d13bf86fc23a4ac",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B00_current.pt",
+    "size": 160075529,
+    "sha256": "39282c591bb2fadbf944fee070484c0c42f9938a0466a21af9b7ec142fbd879f",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B01_best.pt",
+    "size": 53395886,
+    "sha256": "170d07276e3688ea2f12342800abce5a6a9199e9d0dc10572751a2418f63d756",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B01_current.pt",
+    "size": 160075529,
+    "sha256": "553250b6c6b56e2f11045db4fa5dd014da26eecdd4454ef780014e64ce3e7547",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B10_best.pt",
+    "size": 53395886,
+    "sha256": "53d20649c8c8ebe91ee3d515ed5e6a8ee229bc75ed2892aaa59e9c4c27dd3182",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B10_current.pt",
+    "size": 160075529,
+    "sha256": "f9fe6b0a65662b0294a61fd74ca5dc571b8efa91207283fa44c300f1384c0f21",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B11_best.pt",
+    "size": 53395886,
+    "sha256": "cc623bf0875aba1fcba330ec6568215466d71922ebbfe61eb919e7a26d7182c8",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/B11_current.pt",
+    "size": 160075529,
+    "sha256": "ff88bd6db601422eb53017fca8bd06c94f33957fec8a06e0e50815a139cc50ba",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/C_002_best.pt",
+    "size": 53395886,
+    "sha256": "8e7fcae0fd008b4ca03e563b4d62279b89c35c1849a61a48f498a29d3383cbd1",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 69,
+    "path": "checkpoints/C_002_current.pt",
+    "size": 160075529,
+    "sha256": "7816cd8df96f7a7106fed628a149a5cf284ee8c95bd3e9692e42b1f187c9d770",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B00_best.pt",
+    "size": 53395886,
+    "sha256": "ee7915bab6ab2be287bcd14989f42172a858bdccebe62ced68202815c3cf3675",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B00_current.pt",
+    "size": 160075401,
+    "sha256": "e8726f3e37c4aedf8083c73de001e182c414f78266cb536df063e344ed758db0",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B01_best.pt",
+    "size": 53395886,
+    "sha256": "db1646fb4183a03cceb3bc8a909c1d326c2638f018e0fdd46163312ed6279016",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B01_current.pt",
+    "size": 160075401,
+    "sha256": "82e5395ff627a6696c1b0625b0f8a8c1323c5e95c6b497e0a68c288bbcc0319b",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B10_best.pt",
+    "size": 53395886,
+    "sha256": "19bbec14d7d231c1116bcc3d7eb1f593005f2c526ff8ef5274f6878598115438",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B10_current.pt",
+    "size": 160075401,
+    "sha256": "250cef526b7501cbb850786fda35a98d7b7fb634d2803aad903f20c312fb8609",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B11_best.pt",
+    "size": 53395886,
+    "sha256": "6778108d611a3db2480eb34fdc214b9007dabd1c372c270c84ac2b8d88439b4b",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/B11_current.pt",
+    "size": 160075401,
+    "sha256": "745d9dcaf3bfef54a67d6c8ff5b759b736e6db69b237feb05f7f6dee9f36c506",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/C_002_best.pt",
+    "size": 53395886,
+    "sha256": "0b6c6c374175bcd6c8856df520ee159a81d55c9f3c6294569ad07f5932fde2c5",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 70,
+    "path": "checkpoints/C_002_current.pt",
+    "size": 160075401,
+    "sha256": "5079c55615de08528edde3029de1e2a714d404a7028a687c3cfcc509021f48c3",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B00_best.pt",
+    "size": 53395886,
+    "sha256": "96ee1943c094627f52d54eac09ecb0800b57a32690b31ee53445993aea04fb88",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B00_current.pt",
+    "size": 160075465,
+    "sha256": "80bafe2f950abc2b7152959c0728383ff4ea1703e0b20fd883e9aa33e0509ac3",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B01_best.pt",
+    "size": 53395886,
+    "sha256": "fd432f60fbaf7dae5f4d60d3289e0e388101e1400dc448ffb12c3287e82a0eaa",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B01_current.pt",
+    "size": 160075465,
+    "sha256": "f6b410c4dccc9ed993477388c839ddd2d710bfc170f22c4c4a98752fdf79b1e2",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B10_best.pt",
+    "size": 53395886,
+    "sha256": "5edacdabfd636f1931cdb668066fe17c6762395bd2538ad01cde508c76e8beac",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B10_current.pt",
+    "size": 160075465,
+    "sha256": "de564a42b9b0b076e7e9ce90eba956692a38b0a6cef093fdf40b5c64d9fd915a",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B11_best.pt",
+    "size": 53395886,
+    "sha256": "e33fbfe5a5a3207928cc45e75aae963f4cf8f4bd7f5c021eea8cd9b820c603fc",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/B11_current.pt",
+    "size": 160075465,
+    "sha256": "96afae9097a94bf3c17501faa112509c7e40f866c75242c84fe270be19c5d07e",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/C_002_best.pt",
+    "size": 53395886,
+    "sha256": "69ae3492e66ecd48ef898047baf1aa1c86b7d08d036692c56e1d53bfcff366b1",
+    "binary_publicly_distributed": false
+  },
+  {
+    "seed": 71,
+    "path": "checkpoints/C_002_current.pt",
+    "size": 160075465,
+    "sha256": "f62461797b1450a7ca8a0bec06f7ca2b9cd14e69cfcadf1a9fbe2ad8a6575a98",
+    "binary_publicly_distributed": false
+  }
+]

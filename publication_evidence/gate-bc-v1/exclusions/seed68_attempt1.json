@@ -1,0 +1,10 @@
+{
+  "attempt_id": "canonical68-attempt1-routing-v1",
+  "seed": 68,
+  "scientific_inclusion": "NONE_ENTIRE_ATTEMPT",
+  "status": "EXCLUDED / EVIDENCE_INCOMPLETE",
+  "technical_class": "DRIVE_HTTP_500_UPDATE_FAILURE",
+  "cause": "NOT_ESTABLISHED",
+  "preservation": "historical targets retained immutable",
+  "splice": "FORBIDDEN"
+}

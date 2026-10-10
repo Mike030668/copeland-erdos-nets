@@ -1,0 +1,10 @@
+{
+  "status": "APPROVED_WITH_CLARIFICATIONS",
+  "source": "discussion/recomendations/GATE_BC_PUBLIC_ALLOWLIST_DS_CONFIRMATION.md",
+  "raw_sha256": "4a1be76daaf65b6e195bed13287f830ad13fae86e0d219b76496680aa14e5ad3",
+  "scientific_decision_raw_sha256": "4fb12063bb64260c8974b2ab384aff3b7171aadfc6a93c0ecff0445d1b4925b6",
+  "allowed_categories": ["canonical_scientific_payload", "frozen_public_source_config", "public_runtime_data_parity_telemetry", "scientific_DS_decision", "reproducible_calculations_tables", "public_provenance_exclusions", "mapping_limitations_inventory"],
+  "deliberate_omissions": ["checkpoint_and_archive_binaries", "private_transport_IDs", "credentials_and_keypaths", "proxy_session_material", "private_control_tooling", "local_logs", "CE_P1_evidence", "failed_attempt_scientific_endpoints"],
+  "final_release": "PENDING_EXACT_CANDIDATE_DS_REVIEW",
+  "tag": "PROPOSED_ONLY_publication-evidence-gate-bc-v1"
+}

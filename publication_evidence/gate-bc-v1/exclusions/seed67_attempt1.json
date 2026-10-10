@@ -1,0 +1,10 @@
+{
+  "attempt_id": "canonical67-attempt1-20261007T121550Z",
+  "seed": 67,
+  "scientific_inclusion": "NONE_ENTIRE_ATTEMPT",
+  "status": "EXCLUDED / EVIDENCE_INCOMPLETE",
+  "technical_class": "TRANSPORT_AUTH_REFRESH_FAILURE",
+  "cause": "technical failure as disposition",
+  "preservation": "historical targets retained immutable",
+  "splice": "FORBIDDEN"
+}
